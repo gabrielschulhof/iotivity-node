@@ -39,7 +39,7 @@ During compilation, iotivity-node downloads iotivity from its git repository, bu
 
 Alternatively, you can use some rudimentary install scripts for both iotivity and this repository. Using them will help you avoid having to set the environment variables ```OCTBSTACK_CFLAGS``` and ```OCTBSTACK_LIBS```, because the scripts will supply them to the build process.
 
-0. Grab [install.sh][] and [octbstack.pc.in][] and place them in the root of the iotivity repository.
+0. <a id="place-where-this-is-relevant"></a> Grab [install.sh][] and [octbstack.pc.in][] and place them in the root of the iotivity repository.
 0. As root, change directory to the iotivity repository and run ```./install.sh```. The script recognizes two environment variables: ```PREFIX``` is set to ```/usr``` by default, and ```DESTDIR``` is unset. Use ```PREFIX``` to install to a location other than ```/usr``` and use ```DESTDIR``` to set an additional prefix where to put the files. This latter option is especially useful for packaging. Examples:
 
     ```PREFIX=/usr/local ./install.sh``` will install the files into ```/usr/local``` instead.
