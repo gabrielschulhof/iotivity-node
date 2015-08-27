@@ -34,8 +34,18 @@ static gboolean run_OCProcess( void *nothingHere ) {
 	return TRUE;
 }
 
-static void dumpResponse( const char *prefix, OCClientResponse *response ) {
+static void dumpIdentity( const char *prefix, OCIdentity *id ) {
 	int index;
+
+	printf( "%s: identity:\n", prefix );
+	printf( "%s: identity.id_length: %d (vs. max %d)\n", prefix, id->id_length, MAX_IDENTITY_SIZE );
+	for ( index = 0 ; index < MIN( id->id_length, MAX_IDENTITY_SIZE ) ; index++ ) {
+		printf( "%s: identity.id[%d]: %d\n", prefix, index, id->id[index] );
+	}
+}
+
+static void dumpResponse( const char *prefix, OCClientResponse *response ) {
+	char *new_prefix;
 
 	printf( "%s: response:\n", prefix );
 	printf( "%s: ->devAddr:\n", prefix );
@@ -43,11 +53,12 @@ static void dumpResponse( const char *prefix, OCClientResponse *response ) {
 	printf( "%s: ->devAddr.flags: %d\n", prefix, response->devAddr.flags );
 	printf( "%s: ->devAddr.interface: %d\n", prefix, response->devAddr.interface );
 	printf( "%s: ->devAddr.port: %d\n", prefix, response->devAddr.port );
-	printf( "%s: ->devAddr.identity:\n", prefix );
-	printf( "%s: ->devAddr.identity.id_length: %d\n", prefix, response->devAddr.identity.id_length );
-	for ( index = 0 ; index < MIN( MAX_ADDR_STR_SIZE, response->devAddr.identity.id_length ) ; index++ ) {
-		printf( "%s: ->devAddr.addr[ %d ]: %d\n", prefix, index, response->devAddr.addr[ index ] );
-	}
+	printf( "%s: ->devAddr.addr: %s\n", prefix, response->devAddr.addr );
+
+	new_prefix = g_strdup_printf( "%s: ->devAddr", prefix );
+	dumpIdentity( new_prefix, &( response->devAddr.identity ) );
+	g_free( new_prefix );
+
 	printf( "%s: response->payload: %s\n", prefix, response->payload ? "present": "absent" );
 }
 
@@ -73,7 +84,8 @@ static OCStackApplicationResult presenceCallback( void *nothingHere, OCDoHandle 
 static OCStackApplicationResult discoverCallback( void *nothingHere, OCDoHandle handle, OCClientResponse *response ) {
 	OCStackApplicationResult returnValue = OC_STACK_KEEP_TRANSACTION;
 
-	printf( "discovery: response->payload: %s\n", response->payload ? "present": "absent" );
+	dumpResponse( "discovery", response );
+
 	if ( response->payload ) {
 		printf( "discovery: response->payload->type: %d\n", response->payload->type );
 		if ( response->payload->type == PAYLOAD_TYPE_DISCOVERY ) {
