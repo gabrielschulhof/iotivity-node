@@ -73,6 +73,7 @@ static OCStackApplicationResult presenceCallback( void *nothingHere, OCDoHandle 
 			printf( "presence: maxAge: %d\n", payload->maxAge );
 			printf( "presence: trigger: %d\n", payload->trigger );
 			printf( "presence: resourceType: %s\n", payload->resourceType );
+			printf( "\n" );
 		} else {
 			g_warning( "What?! payload type is not PAYLOAD_TYPE_PRESENCE?!" );
 		}
@@ -119,6 +120,7 @@ static OCStackApplicationResult discoverCallback( void *nothingHere, OCDoHandle 
 					}
 				}
 			}
+			printf( "\n" );
 		} else {
 			g_warning( "What?! payload type is not PAYLOAD_TYPE_DISCOVERY?!" );
 		}
