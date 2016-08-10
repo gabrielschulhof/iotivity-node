@@ -19,9 +19,11 @@
 #include "../structures/handles.h"
 #include "../structures/oc-device-info.h"
 #include "../structures/oc-platform-info.h"
+#include "../structures/oc-provision-dev.h"
 
 extern "C" {
 #include <ocstack.h>
+#include <ocprovisioningmanager.h>
 }
 
 using namespace v8;
@@ -237,4 +239,37 @@ NAN_METHOD(bind_OCGetServerInstanceIDString) {
 
   info.GetReturnValue().Set(idString ? (Nan::New(idString).ToLocalChecked())
                                      : Nan::EmptyString());
+}
+
+NAN_METHOD(bind_OCInitPM) {
+	VALIDATE_ARGUMENT_COUNT(info, 1);
+	VALIDATE_ARGUMENT_TYPE(info, 0, IsString);
+	info.GetReturnValue().Set(
+		Nan::New((int)OCInitPM((const char *)*(String::Utf8Value(info[0])))));
+}
+
+NAN_METHOD(bind_OCDiscoverUnownedDevices) {
+	VALIDATE_ARGUMENT_COUNT(info, 2);
+	VALIDATE_ARGUMENT_TYPE(info, 0, IsUint32);
+	VALIDATE_ARGUMENT_TYPE(info, 1, IsArray);
+
+	Local<Array> destination = Local<Array>::Cast(info[1]);
+	if (destination->Length() != 0) {
+		Nan::ThrowRangeError(
+			"Destination array for discovered devices must be empty");
+		return;
+	}
+
+	int index;
+	OCProvisionDev_t *devices = 0, *oneDevice = 0;
+	OCStackResult result = OCDiscoverUnownedDevices(
+		(unsigned short)Nan::To<uint32_t>(info[0]).FromJust(), &devices);
+
+	for (index = 0, oneDevice = devices;
+			oneDevice;
+			index++, oneDevice = oneDevice->next) {
+		Nan::Set(destination, index, js_OCProvisionDev(oneDevice));
+	}
+
+	info.GetReturnValue().Set(Nan::New((int)result));
 }

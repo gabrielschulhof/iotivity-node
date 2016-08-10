@@ -188,6 +188,7 @@
 				"src/common.cc",
 				"src/functions/oc-create-delete-resource.cc",
 				"src/functions/oc-do-resource.cc",
+				"src/functions/oc-provisioning-ownership-transfer.cc",
 				"src/functions/oc-register-persistent-storage-handler.cc",
 				"src/functions/oc-set-default-device-entity-handler.cc",
 				"src/functions/oc-server-response.cc",
@@ -202,7 +203,9 @@
 				"src/structures/oc-header-option-array.cc",
 				"src/structures/oc-identity.cc",
 				"src/structures/oc-payload.cc",
-				"src/structures/oc-platform-info.cc"
+				"src/structures/oc-platform-info.cc",
+				"src/structures/oc-provision-dev.cc",
+				"src/structures/oc-security.cc"
 			],
 			"dependencies": [ "csdk", "generateconstants", "generateenums", "generatefunctions" ]
 		}

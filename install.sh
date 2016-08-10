@@ -53,9 +53,13 @@ SHAREDIR="${PREFIX}/share/iotivity"
 
 OCTB_STACK_DIR=resource/csdk/stack
 OCTB_SECURITY_DIR=resource/csdk/security
+OCTB_PROVISIONING_DIR=resource/csdk/security/provisioning
 OCTB_CCOMMON_DIR=resource/c_common
+
 OCTB_STACK_INCLUDEDIR=iotivity/${OCTB_STACK_DIR}/include
 OCTB_CCOMMON_INCLUDEDIR=iotivity/${OCTB_CCOMMON_DIR}
+OCTB_SECURITY_INCLUDEDIR=iotivity/${OCTB_SECURITY_DIR}/include
+OCTB_PROVISIONING_INCLUDEDIR=iotivity/${OCTB_PROVISIONING_DIR}/include
 
 # Compute where we will actually put the files. This part of the code honours DESTDIR. DESTDIR
 # should not be used in the construction of any other variable such as LIBDIR or INCLUDEDIR.
@@ -90,6 +94,12 @@ touch "${ACTUAL_INCLUDEDIR}/${OCTB_STACK_INCLUDEDIR}"/logger.h
 mkdir -p "${ACTUAL_INCLUDEDIR}/iotivity/${OCTB_CCOMMON_DIR}" || exit 1
 cp -a "${SOURCE}/${OCTB_CCOMMON_DIR}/platform_features.h" "${ACTUAL_INCLUDEDIR}/${OCTB_CCOMMON_INCLUDEDIR}" || exit 1
 cp -a "${SOURCE}/${OCTB_CCOMMON_DIR}/iotivity_config.h" "${ACTUAL_INCLUDEDIR}/${OCTB_CCOMMON_INCLUDEDIR}" || exit 1
+
+mkdir -p "${ACTUAL_INCLUDEDIR}/iotivity/${OCTB_PROVISIONING_DIR}" || exit 1
+cp -a "${SOURCE}/${OCTB_PROVISIONING_DIR}/include" "${ACTUAL_INCLUDEDIR}/${OCTB_PROVISIONING_INCLUDEDIR}" || exit 1
+
+mkdir -p "${ACTUAL_INCLUDEDIR}/iotivity/${OCTB_SECURITY_DIR}" || exit 1
+cp -a "${SOURCE}/${OCTB_SECURITY_DIR}/include" "${ACTUAL_INCLUDEDIR}/${OCTB_SECURITY_INCLUDEDIR}" || exit 1
 
 if test "x${INSTALL_PC}x" = "xtruex"; then
   mkdir -p "${ACTUAL_LIBDIR}/pkgconfig"
