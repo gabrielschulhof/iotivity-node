@@ -26,18 +26,27 @@ extern "C" {
 
 using namespace v8;
 
-#define SET_SID_FROM_OICUUID_T(destination, source, member) \
+#define JS_SET_SID_FROM_OICUUID_T(destination, source, member) \
 	Nan::Set((destination), Nan::New(#member).ToLocalChecked(), \
 		js_SID((char *)((source)->member.id)));
+
+#define C_SET_OICUUID_T_FROM_SID(destination, source, member, message, failLabel) \
+	do { \
+		Local<Value> jsMember = Nan::Get(source, \
+			Nan::New(#member).ToLocalChecked()).ToLocalChecked(); \
+		VALIDATE_STRING_AND_LENGTH(jsMember, UUID_LENGTH, message, failLabel); \
+		strcpy((char *)((destination).member.id), \
+			(const char *)*String::Utf8Value(jsMember)); \
+	} while(0)
 
 Local<Object> js_OicSecPstat(OicSecPstat_t *source,
 		Local<Object> destination) {
 
-	SET_VALUE_ON_OBJECT(destination, Boolean, source, isOp);
-	SET_VALUE_ON_OBJECT(destination, Int32, source, cm);
-	SET_VALUE_ON_OBJECT(destination, Int32, source, tm);
-	SET_SID_FROM_OICUUID_T(destination, source, deviceID);
-	SET_VALUE_ON_OBJECT(destination, Int32, source, om);
+	ADD_VALUE(destination, source, isOp, Boolean);
+	ADD_VALUE(destination, source, cm, Int32);
+	ADD_VALUE(destination, source, tm, Int32);
+	JS_SET_SID_FROM_OICUUID_T(destination, source, deviceID);
+	ADD_VALUE(destination, source, om, Int32);
 
 	size_t index;
 	Local<Array> jsSm = Nan::New<Array>(source->smLen);
@@ -46,8 +55,8 @@ Local<Object> js_OicSecPstat(OicSecPstat_t *source,
 	}
 	Nan::Set(destination, Nan::New("sm").ToLocalChecked(), jsSm);
 
-	SET_VALUE_ON_OBJECT(destination, Uint32, source, commitHash);
-	SET_SID_FROM_OICUUID_T(destination, source, rownerID);
+	ADD_VALUE(destination, source, commitHash, Uint32);
+	JS_SET_SID_FROM_OICUUID_T(destination, source, rownerID);
 
 	return destination;
 }
@@ -69,16 +78,52 @@ Local<Object> js_OicSecDoxm(OicSecDoxm_t *source,
 	}
 	Nan::Set(destination, Nan::New("oxm").ToLocalChecked(), jsOxm);
 
-	SET_VALUE_ON_OBJECT(destination, Int32, source, oxmSel);
-	SET_VALUE_ON_OBJECT(destination, Int32, source, sct);
-	SET_VALUE_ON_OBJECT(destination, Boolean, source, owned);
+	ADD_VALUE(destination, source, oxmSel, Int32);
+	ADD_VALUE(destination, source, sct, Int32);
+	ADD_VALUE(destination, source, owned, Boolean);
 
-	SET_SID_FROM_OICUUID_T(destination, source, deviceID);
+	JS_SET_SID_FROM_OICUUID_T(destination, source, deviceID);
 
-	SET_VALUE_ON_OBJECT(destination, Boolean, source, dpc);
+	ADD_VALUE(destination, source, dpc, Boolean);
 
-	SET_SID_FROM_OICUUID_T(destination, source, owner);	
-	SET_SID_FROM_OICUUID_T(destination, source, rownerID);	
+	JS_SET_SID_FROM_OICUUID_T(destination, source, owner);	
+	JS_SET_SID_FROM_OICUUID_T(destination, source, rownerID);	
 
 	return destination;
+}
+
+Local<Object> js_OCProvisionResult(OCProvisionResult_t *source,
+		Local<Object> destination) {
+
+	JS_SET_SID_FROM_OICUUID_T(destination, source, deviceId);
+	ADD_VALUE(destination, source, res, Int32);
+
+	return destination;
+}
+
+bool c_OicSecPstat(Local<Object> jsSource, OicSecPstat_t *destination) {
+	OicSecPstat_t local;
+
+	VALIDATE_AND_ASSIGN(local, jsSource, isOp, "OicSecPstat",
+		bool, IsBoolean, BooleanValue, fail);
+	VALIDATE_AND_ASSIGN(local, jsSource, cm, "OicSecPstat",
+		OicSecDpm_t, IsInt32, Int32Value, fail);
+	VALIDATE_AND_ASSIGN(local, jsSource, tm, "OicSecPstat",
+		OicSecDpm_t, IsInt32, Int32Value, fail);
+
+	C_SET_OICUUID_T_FROM_SID(local, jsSource, deviceID,
+			"OicSecPstat.deviceID", fail);
+
+	VALIDATE_AND_ASSIGN(local, jsSource, om, "OicSecPstat",
+		OicSecDpom_t, IsInt32, Int32Value, fail);
+	VALIDATE_AND_ASSIGN(local, jsSource, commitHash, "OicSecPstat",
+		uint16_t, IsUint32, Uint32Value, fail);
+
+	C_SET_OICUUID_T_FROM_SID(local, jsSource, rownerID,
+			"OicSecPstat.rownerID", fail);
+
+	*destination = local;
+	return true;
+fail:
+	return false;
 }

@@ -29,4 +29,10 @@ v8::Local<v8::Object> js_OicSecPstat(OicSecPstat_t *source,
 v8::Local<v8::Object> js_OicSecDoxm(OicSecDoxm_t *source,
 	v8::Local<v8::Object> destination = Nan::New<v8::Object>());
 
+v8::Local<v8::Object> js_OCProvisionResult(OCProvisionResult_t *source,
+	v8::Local<v8::Object> destination = Nan::New<v8::Object>());
+
+bool c_OicSecPstat(v8::Local<v8::Object> jsSource, OicSecPstat_t *destination);
+
+bool c_OicSecDoxm(v8::Local<v8::Object> jsSource, OicSecDoxm_t *destination);
 #endif /* __IOTIVITY_NODE_OCSECURITY_H__ */

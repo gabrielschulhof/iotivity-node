@@ -19,10 +19,18 @@
 
 #include <v8.h>
 #include <nan.h>
+
 extern "C" {
+#include <ocstack.h>
 #include <pmtypes.h>
 }
 
-v8::Local<v8::Object> js_OCProvisionDev(OCProvisionDev_t *source, v8::Local<v8::Object> destination = Nan::New<v8::Object>());
+#include "handles.h"
+
+v8::Local<v8::Object> js_OCProvisionDev(OCProvisionDev_t *source,
+	v8::Local<v8::Object> destination = Nan::New<v8::Object>());
+
+bool c_OCProvisionDev(v8::Local<v8::Object> jsSource, OCProvisionDev_t **destination);
+void c_OCProvisionDev_freeMembers(OCProvisionDev_t *device);
 
 #endif /* __IOTIVITY_NODE_OCPROVISIONDEV_H__ */
