@@ -25,7 +25,7 @@ grunt.task.registerTask( "ocf-suite", "Run the OCF test suite", function() {
 		return done();
 	}
 
-	testSuite = require( "iot-js-api-test-suite" );
+	testSuite = require( "iot-js-api" );
 
 	_.extend( testSuite, {
 		defaultCallbacks: _.extend( testSuite.defaultCallbacks, {
