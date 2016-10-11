@@ -25,6 +25,10 @@ using namespace v8;
     Local<Value> returnValue =                                     \
         (callback)->Call((context), (argumentCount), (arguments)); \
     if (tryCatch.HasCaught()) {                                    \
+	  Local<Value> caughtValue = tryCatch.Exception();             \
+	  if (!caughtValue->IsNull()) {                                \
+	  	tryCatch.ReThrow();                                        \
+	  }                                                            \
       return;                                                      \
     }                                                              \
     returnValue;                                                   \
