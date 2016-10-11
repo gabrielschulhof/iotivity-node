@@ -32,7 +32,7 @@ echo '' >> generated/functions.cc
 echo 'NAN_MODULE_INIT(InitFunctions) {' >> generated/functions.cc
 
 find src -type f | while read filename; do
-	cat "${filename}" | grep NAN_METHOD;
+	cat "${filename}" | grep '^NAN_METHOD';
 done | \
 	sed -e 's/^NAN_METHOD[[:space:]]*([[:space:]]*//' -e 's/[[:space:]]*).*$//' -e 's/^bind_//' | \
 	sort -u | \

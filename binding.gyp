@@ -188,6 +188,7 @@
 				"src/main.cc",
 				"src/structures.cc",
 				"src/structures/handles.cc",
+				"src/structures/interceptable.cc",
 				"src/structures/oc-client-response.cc",
 				"src/structures/oc-dev-addr.cc",
 				"src/structures/oc-device-info.cc",
