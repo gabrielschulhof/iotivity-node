@@ -17,16 +17,11 @@
 #ifndef __IOTIVITY_NODE_ENUMS_H__
 #define __IOTIVITY_NODE_ENUMS_H__
 
-#include <v8.h>
+#include <node_jsvmapi.h>
 
-void InitEnums(v8::Handle<v8::Object> exports);
+NAPI_MODULE_INIT(InitEnums);
 
-#define SET_CONSTANT_NUMBER(destination, name)                   \
-  Nan::ForceSet((destination), Nan::New(#name).ToLocalChecked(), \
-                Nan::New((name)),                                \
-                (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete));
-#define SET_CONSTANT_STRING(destination, name)                   \
-  Nan::ForceSet((destination), Nan::New(#name).ToLocalChecked(), \
-                Nan::New((name)).ToLocalChecked(),               \
-                (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete));
+#define SET_CONSTANT(env, destination, name, type)                          \
+  napi_set_property((env), (destination), napi_property_name((env), #name), \
+                    napi_create_##type((env), name))
 #endif /* __IOTIVITY_NODE_ENUMS_H__ */

@@ -14,19 +14,17 @@
  * limitations under the License.
  */
 
-#include <nan.h>
-
 #include "enums.h"
+
+#include <node_jsvmapi.h>
 
 extern "C" {
 #include <ocstack.h>
 }
 
-using namespace v8;
-
-#define SET_ENUM(destination, enumName)                              \
-  Nan::ForceSet((destination), Nan::New(#enumName).ToLocalChecked(), \
-                bind_##enumName(),                                   \
-                (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete));
+#define SET_ENUM(env, destination, enumName)              \
+  napi_set_property((env), (destination),                 \
+                    napi_property_name((env), #enumName), \
+                    bind_##enumName(env))
 
 // The rest of this file is generated
