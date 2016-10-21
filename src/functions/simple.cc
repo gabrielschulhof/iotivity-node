@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include <nan.h>
+#include <node_jsvmapi.h>
 #include "../common.h"
 #include "../structures/oc-device-info.h"
 #include "../structures/oc-platform-info.h"
@@ -25,37 +25,38 @@ extern "C" {
 
 using namespace v8;
 
-NAN_METHOD(bind_OCInit) {
-  VALIDATE_ARGUMENT_COUNT(info, 3);
-  VALIDATE_ARGUMENT_TYPE_OR_NULL(info, 0, IsString);
-  VALIDATE_ARGUMENT_TYPE(info, 1, IsUint32);
-  VALIDATE_ARGUMENT_TYPE(info, 2, IsUint32);
+NAPI_METHOD(bind_OCInit) {
+  VALIDATE_ARGUMENT_COUNT(env, info, 3);
+  VALIDATE_ARGUMENT_TYPE_OR_NULL(env, info, 0, IsString);
+  VALIDATE_ARGUMENT_TYPE(env, info, 1, IsUint32);
+  VALIDATE_ARGUMENT_TYPE(env, info, 2, IsUint32);
 
+  napi_set_return_value(env, 
   info.GetReturnValue().Set(Nan::New(OCInit(
       (const char *)(info[0]->IsString() ? (*String::Utf8Value(info[0])) : 0),
       (uint16_t)Nan::To<uint32_t>(info[1]).FromJust(),
       (OCMode)Nan::To<uint32_t>(info[2]).FromJust())));
 }
 
-NAN_METHOD(bind_OCStop) { info.GetReturnValue().Set(Nan::New(OCStop())); }
+NAPI_METHOD(bind_OCStop) { info.GetReturnValue().Set(Nan::New(OCStop())); }
 
-NAN_METHOD(bind_OCProcess) { info.GetReturnValue().Set(Nan::New(OCProcess())); }
+NAPI_METHOD(bind_OCProcess) { info.GetReturnValue().Set(Nan::New(OCProcess())); }
 
-NAN_METHOD(bind_OCStartPresence) {
-  VALIDATE_ARGUMENT_COUNT(info, 1);
-  VALIDATE_ARGUMENT_TYPE(info, 0, IsUint32);
+NAPI_METHOD(bind_OCStartPresence) {
+  VALIDATE_ARGUMENT_COUNT(env, info, 1);
+  VALIDATE_ARGUMENT_TYPE(env, info, 0, IsUint32);
 
   info.GetReturnValue().Set(Nan::New(
       OCStartPresence((uint32_t)Nan::To<uint32_t>(info[0]).FromJust())));
 }
 
-NAN_METHOD(bind_OCStopPresence) {
+NAPI_METHOD(bind_OCStopPresence) {
   info.GetReturnValue().Set(Nan::New(OCStopPresence()));
 }
 
-NAN_METHOD(bind_OCSetDeviceInfo) {
-  VALIDATE_ARGUMENT_COUNT(info, 1);
-  VALIDATE_ARGUMENT_TYPE(info, 0, IsObject);
+NAPI_METHOD(bind_OCSetDeviceInfo) {
+  VALIDATE_ARGUMENT_COUNT(env, info, 1);
+  VALIDATE_ARGUMENT_TYPE(env, info, 0, IsObject);
 
   OCDeviceInfo deviceInfo;
 
@@ -70,9 +71,9 @@ NAN_METHOD(bind_OCSetDeviceInfo) {
   info.GetReturnValue().Set(Nan::New(result));
 }
 
-NAN_METHOD(bind_OCSetPlatformInfo) {
-  VALIDATE_ARGUMENT_COUNT(info, 1);
-  VALIDATE_ARGUMENT_TYPE(info, 0, IsObject);
+NAPI_METHOD(bind_OCSetPlatformInfo) {
+  VALIDATE_ARGUMENT_COUNT(env, info, 1);
+  VALIDATE_ARGUMENT_TYPE(env, info, 0, IsObject);
 
   OCPlatformInfo platformInfo;
 
@@ -88,9 +89,9 @@ NAN_METHOD(bind_OCSetPlatformInfo) {
   info.GetReturnValue().Set(Nan::New(result));
 }
 
-NAN_METHOD(bind_OCGetNumberOfResources) {
-  VALIDATE_ARGUMENT_COUNT(info, 1);
-  VALIDATE_ARGUMENT_TYPE(info, 0, IsObject);
+NAPI_METHOD(bind_OCGetNumberOfResources) {
+  VALIDATE_ARGUMENT_COUNT(env, info, 1);
+  VALIDATE_ARGUMENT_TYPE(env, info, 0, IsObject);
 
   OCStackResult result;
   uint8_t resourceCount = 0;
@@ -105,8 +106,8 @@ NAN_METHOD(bind_OCGetNumberOfResources) {
   info.GetReturnValue().Set(Nan::New(result));
 }
 
-NAN_METHOD(bind_OCGetServerInstanceIDString) {
-  VALIDATE_ARGUMENT_COUNT(info, 0);
+NAPI_METHOD(bind_OCGetServerInstanceIDString) {
+  VALIDATE_ARGUMENT_COUNT(env, info, 0);
 
   const char *idString = OCGetServerInstanceIDString();
 
