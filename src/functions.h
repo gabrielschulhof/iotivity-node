@@ -17,15 +17,13 @@
 #ifndef __IOTIVITY_NODE_FUNCTIONS_H__
 #define __IOTIVITY_NODE_FUNCTIONS_H__
 
-#include <nan.h>
+#include <node_jsvmapi.h>
 
-#define SET_FUNCTION(destination, functionName)                             \
-  Nan::ForceSet(                                                            \
-      (destination), Nan::New(#functionName).ToLocalChecked(),              \
-      Nan::GetFunction(Nan::New<v8::FunctionTemplate>(bind_##functionName)) \
-          .ToLocalChecked(),                                                \
-      (v8::PropertyAttribute)(v8::DontDelete));
+#define SET_FUNCTION(env, destination, functionName)  \
+  napi_set_property((env), (destination),             \
+	  napi_property_name((env), #functionName),       \
+	  napi_create_function((env), bind_##functionName))
 
-NAN_MODULE_INIT(InitFunctions);
+NAPI_MODULE_INIT(InitFunctions);
 
 #endif /* __IOTIVITY_NODE_FUNCTIONS_H__ */

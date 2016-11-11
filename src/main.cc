@@ -18,10 +18,12 @@
 
 #include "constants.h"
 #include "enums.h"
+#include "functions.h"
 
 NAPI_MODULE_INIT(Init) {
   InitConstants(env, exports, module);
   InitEnums(env, exports, module);
+  InitFunctions(env, exports, module);
 }
 
 NODE_MODULE_ABI(iotivity, Init)

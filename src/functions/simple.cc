@@ -27,40 +27,80 @@ using namespace v8;
 
 NAPI_METHOD(bind_OCInit) {
   VALIDATE_ARGUMENT_COUNT(env, info, 3);
-  VALIDATE_ARGUMENT_TYPE_OR_NULL(env, info, 0, IsString);
-  VALIDATE_ARGUMENT_TYPE(env, info, 1, IsUint32);
-  VALIDATE_ARGUMENT_TYPE(env, info, 2, IsUint32);
 
-  napi_set_return_value(env, 
-  info.GetReturnValue().Set(Nan::New(OCInit(
-      (const char *)(info[0]->IsString() ? (*String::Utf8Value(info[0])) : 0),
-      (uint16_t)Nan::To<uint32_t>(info[1]).FromJust(),
-      (OCMode)Nan::To<uint32_t>(info[2]).FromJust())));
+  napi_value arguments[3];
+  napi_get_cb_args(env, info, arguments, 3);
+
+  VALIDATE_ARGUMENT_TYPE_OR_NULL(env, arguments, 0, napi_string);
+  VALIDATE_ARGUMENT_TYPE(env, arguments, 1, napi_number);
+  VALIDATE_ARGUMENT_TYPE(env, arguments, 2, napi_number);
+
+  int ipAddr_length = 0;
+  bool ipAddr_isString =
+  	( napi_get_type_of_value(env, arguments[0]) == napi_string );
+  if (ipAddr_isString) {
+  	ipAddr_length = napi_get_string_length(env, arguments[0]);
+  }
+  char ipAddr[ipAddr_length + 1] = {0};
+  if ( ipAddr_isString) {
+  	napi_get_string_from_value(env, arguments[0], ipAddr, ipAddr_length);
+  }
+
+  napi_set_return_value(env, info, napi_create_number(env, (double)OCInit(
+      (const char *)(ipAddr_isString ? ipAddr : 0),
+      napi_get_value_uint32(env, arguments[1]),
+      (OCMode)napi_get_value_uint32(env, arguments[2]))));
 }
 
-NAPI_METHOD(bind_OCStop) { info.GetReturnValue().Set(Nan::New(OCStop())); }
+#define SIMPLE_METHOD(env, info, api) \
+	napi_set_return_value((env), (info), \
+		napi_create_number((env), (double)api()));
 
-NAPI_METHOD(bind_OCProcess) { info.GetReturnValue().Set(Nan::New(OCProcess())); }
+NAPI_METHOD(bind_OCStop) {
+	SIMPLE_METHOD(env, info, OCStop);
+}
 
-NAPI_METHOD(bind_OCStartPresence) {
-  VALIDATE_ARGUMENT_COUNT(env, info, 1);
-  VALIDATE_ARGUMENT_TYPE(env, info, 0, IsUint32);
-
-  info.GetReturnValue().Set(Nan::New(
-      OCStartPresence((uint32_t)Nan::To<uint32_t>(info[0]).FromJust())));
+NAPI_METHOD(bind_OCProcess) {
+	SIMPLE_METHOD(env, info, OCProcess);
 }
 
 NAPI_METHOD(bind_OCStopPresence) {
-  info.GetReturnValue().Set(Nan::New(OCStopPresence()));
+  SIMPLE_METHOD(env, info, OCStopPresence);
 }
+
+NAPI_METHOD(bind_OCStartPresence) {
+	VALIDATE_ARGUMENT_COUNT(env, info, 1);
+
+  napi_value arguments[1];
+  napi_get_cb_args(env, info, arguments, 1);
+
+	VALIDATE_ARGUMENT_TYPE(env, arguments, 0, napi_number);
+	
+  napi_set_return_value(env, info,
+  	napi_create_number(env, (double)OCStartPresence(
+		napi_get_value_uint32(env, arguments[0]))));
+}
+
+NAPI_METHOD(bind_OCGetServerInstanceIDString) {
+	VALIDATE_ARGUMENT_COUNT(env, info, 0);
+	const char *idString = OCGetServerInstanceIDString();
+	napi_set_return_value(env, info, idString ?
+		napi_create_string(env, idString) :
+		napi_get_null(env));
+}
+
 
 NAPI_METHOD(bind_OCSetDeviceInfo) {
   VALIDATE_ARGUMENT_COUNT(env, info, 1);
-  VALIDATE_ARGUMENT_TYPE(env, info, 0, IsObject);
+
+  napi_value arguments[1];
+  napi_get_cb_args(env, info, arguments, 1);
+
+  VALIDATE_ARGUMENT_TYPE(env, arguments, 0, napi_object);
 
   OCDeviceInfo deviceInfo;
 
-  if (!c_OCDeviceInfo(Nan::To<Object>(info[0]).ToLocalChecked(), &deviceInfo)) {
+  if (!c_OCDeviceInfo(env, arguments[ 0 ], &deviceInfo)) {
     return;
   }
 
@@ -68,9 +108,9 @@ NAPI_METHOD(bind_OCSetDeviceInfo) {
 
   c_OCDeviceInfoFreeMembers(&deviceInfo);
 
-  info.GetReturnValue().Set(Nan::New(result));
+	napi_set_return_value(env, info, napi_create_number(env, result));
 }
-
+/*
 NAPI_METHOD(bind_OCSetPlatformInfo) {
   VALIDATE_ARGUMENT_COUNT(env, info, 1);
   VALIDATE_ARGUMENT_TYPE(env, info, 0, IsObject);
@@ -105,12 +145,4 @@ NAPI_METHOD(bind_OCGetNumberOfResources) {
 
   info.GetReturnValue().Set(Nan::New(result));
 }
-
-NAPI_METHOD(bind_OCGetServerInstanceIDString) {
-  VALIDATE_ARGUMENT_COUNT(env, info, 0);
-
-  const char *idString = OCGetServerInstanceIDString();
-
-  info.GetReturnValue().Set(idString ? (Nan::New(idString).ToLocalChecked())
-                                     : Nan::EmptyString());
-}
+*/

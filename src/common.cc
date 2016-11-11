@@ -18,7 +18,7 @@
 
 using namespace v8;
 
-void addStringArray(Local<Object> destination, OCStringLL *source,
+void addStringArray(napi_env env, napi_value destination, OCStringLL *source,
                     const char *name) {
   if (source) {
     int counter;

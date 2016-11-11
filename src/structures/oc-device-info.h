@@ -17,13 +17,13 @@
 #ifndef __IOTIVITY_NODE_OCDEVICEINFO_H__
 #define __IOTIVITY_NODE_OCDEVICEINFO_H__
 
-#include <v8.h>
+#include <node_jsvmapi.h>
 extern "C" {
 #include <ocstack.h>
 }
 
-v8::Local<v8::Object> js_OCDeviceInfo(OCDeviceInfo *deviceInfo);
-bool c_OCDeviceInfo(v8::Local<v8::Object> deviceInfo, OCDeviceInfo *info);
+napi_value js_OCDeviceInfo(napi_env env, OCDeviceInfo *deviceInfo);
+bool c_OCDeviceInfo(napi_env env, napi_value deviceInfo, OCDeviceInfo *info);
 void c_OCDeviceInfoFreeMembers(OCDeviceInfo *info);
 
 #endif /* __IOTIVITY_NODE_OCDEVICEINFO_H__ */

@@ -15,7 +15,6 @@
  */
 
 #include "oc-device-info.h"
-#include <nan.h>
 #include "../common.h"
 
 extern "C" {
@@ -24,13 +23,13 @@ extern "C" {
 
 using namespace v8;
 
-v8::Local<v8::Object> js_OCDeviceInfo(OCDeviceInfo *info) {
-  Local<Object> returnValue = Nan::New<Object>();
+napi_value js_OCDeviceInfo(napi_env env, OCDeviceInfo *info) {
+  napi_value returnValue = napi_create_object(env);
 
-  SET_STRING_IF_NOT_NULL(returnValue, info, deviceName);
-  SET_STRING_IF_NOT_NULL(returnValue, info, specVersion);
-  ADD_STRING_ARRAY(returnValue, info, types);
-  ADD_STRING_ARRAY(returnValue, info, dataModelVersions);
+  SET_STRING_IF_NOT_NULL(env, returnValue, info, deviceName);
+  SET_STRING_IF_NOT_NULL(env, returnValue, info, specVersion);
+  ADD_STRING_ARRAY(env, returnValue, info, types);
+  ADD_STRING_ARRAY(env, returnValue, info, dataModelVersions);
 
   return returnValue;
 }
@@ -52,23 +51,24 @@ void c_OCDeviceInfoFreeMembers(OCDeviceInfo *info) {
   c_freeLinkedList(info->dataModelVersions);
 }
 
-bool c_StringArrayFromProperty(Local<Object> source, const char *propertyName,
+bool c_StringArrayFromProperty(napi_env env, napi_value source,
+	const char *propertyName,
                                OCStringLL **destination) {
-  Local<Value> sourceValue =
-      Nan::Get(source, Nan::New(propertyName).ToLocalChecked())
-          .ToLocalChecked();
-  VALIDATE_VALUE_TYPE(sourceValue, IsArray,
-                      (std::string("device info ") + propertyName).c_str(),
-                      return false);
-  Local<Array> jsArray = Local<Array>::Cast(sourceValue);
-
-  uint32_t index, length = jsArray->Length();
+  napi_value sourceValue = napi_get_property(env, source,
+  	napi_property_name(env, propertyName));
+  if (!napi_is_array(env, sourceValue)) {
+  	napi_throw_type_error(env,
+		(std::string("device info ") + propertyName +
+			" must be an array").c_str());
+	return false;
+  }
+  uint32_t index, length = napi_get_array_length(env, sourceValue);
   OCStringLL *local = 0, **previous = &local;
 
   for (index = 0; index < length; index++, previous = &((*previous)->next)) {
-    Local<Value> itemValue = Nan::Get(jsArray, index).ToLocalChecked();
+  	napi_value itemValue = napi_get_element(env, sourceValue, index);
     VALIDATE_VALUE_TYPE(
-        itemValue, IsString,
+        env, itemValue, napi_string,
         (std::string("device info ") + propertyName + " list item").c_str(),
         goto free);
 

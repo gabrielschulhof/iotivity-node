@@ -190,6 +190,7 @@
 			"sources": [
 				"generated/constants.cc",
 				"generated/enums.cc",
+				"generated/functions.cc",
 				"src/functions/simple.cc",
 				"src/main.cc"
 			],
