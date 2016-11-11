@@ -110,15 +110,18 @@ NAPI_METHOD(bind_OCSetDeviceInfo) {
 
 	napi_set_return_value(env, info, napi_create_number(env, result));
 }
-/*
+
 NAPI_METHOD(bind_OCSetPlatformInfo) {
   VALIDATE_ARGUMENT_COUNT(env, info, 1);
-  VALIDATE_ARGUMENT_TYPE(env, info, 0, IsObject);
+
+  napi_value arguments[1];
+  napi_get_cb_args(env, info, arguments, 1);
+
+  VALIDATE_ARGUMENT_TYPE(env, arguments, 0, napi_object);
 
   OCPlatformInfo platformInfo;
 
-  if (!c_OCPlatformInfo(Nan::To<Object>(info[0]).ToLocalChecked(),
-                        &platformInfo)) {
+  if (!c_OCPlatformInfo(env, arguments[0], &platformInfo)) {
     return;
   }
 
@@ -126,12 +129,16 @@ NAPI_METHOD(bind_OCSetPlatformInfo) {
 
   c_OCPlatformInfoFreeMembers(&platformInfo);
 
-  info.GetReturnValue().Set(Nan::New(result));
+  napi_set_return_value(env, info, napi_create_number(env, result));
 }
 
 NAPI_METHOD(bind_OCGetNumberOfResources) {
   VALIDATE_ARGUMENT_COUNT(env, info, 1);
-  VALIDATE_ARGUMENT_TYPE(env, info, 0, IsObject);
+
+  napi_value arguments[1];
+  napi_get_cb_args(env, info, arguments, 1);
+
+  VALIDATE_ARGUMENT_TYPE(env, arguments, 0, napi_object);
 
   OCStackResult result;
   uint8_t resourceCount = 0;
@@ -139,10 +146,10 @@ NAPI_METHOD(bind_OCGetNumberOfResources) {
   result = OCGetNumberOfResources(&resourceCount);
 
   if (result == OC_STACK_OK) {
-    Nan::Set(Nan::To<Object>(info[0]).ToLocalChecked(),
-             Nan::New("count").ToLocalChecked(), Nan::New(resourceCount));
+
+    napi_set_property(env, arguments[0], napi_property_name(env, "count"),
+      napi_create_number(env, resourceCount));    
   }
 
-  info.GetReturnValue().Set(Nan::New(result));
+  napi_set_return_value(env, info, napi_create_number(env, result));
 }
-*/

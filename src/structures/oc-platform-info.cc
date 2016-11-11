@@ -15,7 +15,6 @@
  */
 
 #include "oc-platform-info.h"
-#include <nan.h>
 #include "../common.h"
 
 extern "C" {
@@ -24,20 +23,20 @@ extern "C" {
 
 using namespace v8;
 
-v8::Local<v8::Object> js_OCPlatformInfo(OCPlatformInfo *info) {
-  Local<Object> returnValue = Nan::New<Object>();
+napi_value js_OCPlatformInfo(napi_env env, OCPlatformInfo *info) {
+  napi_value returnValue = napi_create_object(env);
 
-  SET_STRING_IF_NOT_NULL(returnValue, info, platformID);
-  SET_STRING_IF_NOT_NULL(returnValue, info, manufacturerName);
-  SET_STRING_IF_NOT_NULL(returnValue, info, manufacturerUrl);
-  SET_STRING_IF_NOT_NULL(returnValue, info, modelNumber);
-  SET_STRING_IF_NOT_NULL(returnValue, info, dateOfManufacture);
-  SET_STRING_IF_NOT_NULL(returnValue, info, platformVersion);
-  SET_STRING_IF_NOT_NULL(returnValue, info, operatingSystemVersion);
-  SET_STRING_IF_NOT_NULL(returnValue, info, hardwareVersion);
-  SET_STRING_IF_NOT_NULL(returnValue, info, firmwareVersion);
-  SET_STRING_IF_NOT_NULL(returnValue, info, supportUrl);
-  SET_STRING_IF_NOT_NULL(returnValue, info, systemTime);
+  SET_STRING_IF_NOT_NULL(env, returnValue, info, platformID);
+  SET_STRING_IF_NOT_NULL(env, returnValue, info, manufacturerName);
+  SET_STRING_IF_NOT_NULL(env, returnValue, info, manufacturerUrl);
+  SET_STRING_IF_NOT_NULL(env, returnValue, info, modelNumber);
+  SET_STRING_IF_NOT_NULL(env, returnValue, info, dateOfManufacture);
+  SET_STRING_IF_NOT_NULL(env, returnValue, info, platformVersion);
+  SET_STRING_IF_NOT_NULL(env, returnValue, info, operatingSystemVersion);
+  SET_STRING_IF_NOT_NULL(env, returnValue, info, hardwareVersion);
+  SET_STRING_IF_NOT_NULL(env, returnValue, info, firmwareVersion);
+  SET_STRING_IF_NOT_NULL(env, returnValue, info, supportUrl);
+  SET_STRING_IF_NOT_NULL(env, returnValue, info, systemTime);
 
   return returnValue;
 }

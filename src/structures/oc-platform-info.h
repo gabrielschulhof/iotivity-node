@@ -22,8 +22,8 @@ extern "C" {
 #include <ocstack.h>
 }
 
-v8::Local<v8::Object> js_OCPlatformInfo(OCPlatformInfo *platformInfo);
-bool c_OCPlatformInfo(v8::Local<v8::Object> platformInfo, OCPlatformInfo *info);
+napi_value js_OCPlatformInfo(napi_env env, OCPlatformInfo *platformInfo);
+bool c_OCPlatformInfo(napi_env env, napi_value platformInfo, OCPlatformInfo *info);
 void c_OCPlatformInfoFreeMembers(OCPlatformInfo *info);
 
 #endif /* __IOTIVITY_NODE_OCPLATFORMINFO_H__ */
