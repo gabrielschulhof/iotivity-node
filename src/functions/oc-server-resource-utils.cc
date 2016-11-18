@@ -21,7 +21,7 @@
 extern "C" {
 #include <ocstack.h>
 }
-
+/*
 using namespace v8;
 
 #define GET_STRING_COUNT(api)                                                 \
@@ -56,6 +56,7 @@ NAN_METHOD(bind_OCGetNumberOfResourceTypes) {
   GET_STRING_COUNT(OCGetNumberOfResourceTypes);
 }
 
+*/
 #define RETURN_RESOURCE_HANDLE(handle)                            \
   do {                                                            \
     OCResourceHandle localHandle = (handle);                      \
@@ -78,14 +79,15 @@ NAN_METHOD(bind_OCGetResourceHandle) {
   RETURN_RESOURCE_HANDLE(
       OCGetResourceHandle((uint8_t)(Nan::To<uint32_t>(info[0]).FromJust())));
 }
-
-#define RESOURCE_BY_INDEX_ACCESSOR_BOILERPLATE()             \
-  VALIDATE_ARGUMENT_COUNT(info, 2);                          \
-  VALIDATE_ARGUMENT_TYPE(info, 0, IsObject);                 \
-  VALIDATE_ARGUMENT_TYPE(info, 1, IsUint32);                 \
-  CallbackInfo<OCResourceHandle> *callbackInfo;              \
-  JSCALLBACKHANDLE_RESOLVE(JSOCResourceHandle, callbackInfo, \
-                           Nan::To<Object>(info[0]).ToLocalChecked());
+/*
+#define RESOURCE_BY_INDEX_ACCESSOR_BOILERPLATE()                          \
+  VALIDATE_ARGUMENT_COUNT(info, 2);                                       \
+  VALIDATE_ARGUMENT_TYPE(info, 0, IsObject);                              \
+  VALIDATE_ARGUMENT_TYPE(info, 1, IsUint32);                              \
+  OCResourceHandle handle =                                               \
+      JSCALLBACKHANDLE_RESOLVE(JSOCResourceHandle, OCResourceHandle,      \
+                               Nan::To<Object>(info[0]).ToLocalChecked()) \
+          ->handle;
 
 NAN_METHOD(bind_OCGetResourceHandleFromCollection) {
   RESOURCE_BY_INDEX_ACCESSOR_BOILERPLATE();
@@ -138,3 +140,4 @@ NAN_METHOD(bind_OCGetResourceUri) {
     info.GetReturnValue().Set(Nan::Null());
   }
 }
+*/

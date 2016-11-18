@@ -25,45 +25,49 @@ extern "C" {
 
 template <class jsName, typename handleType>
 class JSHandle {
-  static Nan::Persistent<v8::FunctionTemplate> &theTemplate() {
-    static Nan::Persistent<v8::FunctionTemplate> returnValue;
+  static NAPI_METHOD(constructor_callback) {}
+  static napi_persistent &theTemplate(napi_env env) {
+    static napi_persistent returnValue = 0;
 
-    if (returnValue.IsEmpty()) {
-      v8::Local<v8::FunctionTemplate> theTemplate =
-          Nan::New<v8::FunctionTemplate>();
+    if (!returnValue) {
+	  napi_value constructor =
+	  	napi_create_constructor_for_wrap(env, constructor_callback);
+	  napi_set_function_name(env, constructor,
+	  	napi_property_name(env, jsName::jsClassName()));
+/*
       theTemplate->SetClassName(
           Nan::New(jsName::jsClassName()).ToLocalChecked());
       theTemplate->InstanceTemplate()->SetInternalFieldCount(1);
       Nan::Set(Nan::GetFunction(theTemplate).ToLocalChecked(),
                Nan::New("displayName").ToLocalChecked(),
                Nan::New(jsName::jsClassName()).ToLocalChecked());
-      returnValue.Reset(theTemplate);
+*/
+      returnValue = napi_create_persistent(env, constructor);
     }
     return returnValue;
   }
 
  public:
-  static v8::Local<v8::Object> New(handleType data) {
-    v8::Local<v8::Object> returnValue =
-        Nan::NewInstance(
-            Nan::GetFunction(Nan::New(theTemplate())).ToLocalChecked())
-            .ToLocalChecked();
-    Nan::SetInternalFieldPointer(returnValue, 0, data);
+  static napi_value New(napi_env env, handleType data) {
+    napi_value returnValue =
+		napi_new_instance(env, napi_get_persistent_value(theTemplate(env)),
+			0, 0);
+    napi_wrap(env, returnValue, data, 0, 0);
 
     return returnValue;
   }
 
   // If the object is not of the expected type, or if the pointer inside the
   // object has already been removed, then we must throw an error
-  static handleType Resolve(v8::Local<v8::Object> jsObject) {
+  static handleType Resolve(napi_env env, napi_value jsObject) {
     handleType returnValue = 0;
 
-    if (Nan::New(theTemplate())->HasInstance(jsObject)) {
-      returnValue = (handleType)Nan::GetInternalFieldPointer(jsObject, 0);
-    }
+//    if (Nan::New(theTemplate())->HasInstance(jsObject)) {
+      returnValue = (handleType)napi_unwrap(env, jsObject);
+//    }
     if (!returnValue) {
-      Nan::ThrowTypeError(
-          (std::string("Object is not of type ") + jsName::jsClassName())
+		napi_throw_type_error(env, 
+      		(std::string("Object is not of type ") + jsName::jsClassName())
               .c_str());
     }
     return returnValue;
