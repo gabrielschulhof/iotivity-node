@@ -27,7 +27,7 @@ function getMethods( topPath ) {
 					.replace( /\r/g, "" )
 					.split( "\n" ) )
 					.map( function( line ) {
-						var match = line.match( /^NAN_METHOD\s*[(]\s*bind_([^)]*)*/ );
+						var match = line.match( /^NAPI_METHOD\s*[(]\s*bind_([^)]*)*/ );
 						if ( match && match.length > 1 ) {
 							return match[ 1 ].replace( /\s/g, "" );
 						}
@@ -54,7 +54,7 @@ fs.writeFileSync( protosH, [
 	""
 ]
 .concat( _.map( methods, function( item ) {
-	return "NAN_METHOD(bind_" + item + ");";
+	return "NAPI_METHOD(bind_" + item + ");";
 } ) )
 .concat( [
 	"",
@@ -66,10 +66,10 @@ fs.writeFileSync( functionsCC, [
 	"#include \"../src/functions.h\"",
 	"#include \"function-prototypes.h\"",
 	"",
-	"NAN_MODULE_INIT(InitFunctions) {"
+	"NAPI_MODULE_INIT(InitFunctions) {"
 ]
 .concat( _.map( methods, function( item ) {
-	return "  SET_FUNCTION(target, " + item + ");";
+	return "  SET_FUNCTION(env, exports, " + item + ");";
 } ) )
 .concat( [
 	"}\n"

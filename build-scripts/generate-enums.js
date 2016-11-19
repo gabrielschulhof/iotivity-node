@@ -42,7 +42,8 @@ function parseFileForEnums( destination, fileName ) {
 				if ( !fields[ 0 ].match( /^[{}]/ ) && fields[ 0 ] !== "typedef" ) {
 					if ( fields[ 0 ].match( /^[A-Z]/ ) ) {
 						fields[ 0 ] = fields[ 0 ].replace( /,/g, "" );
-						output += "  SET_CONSTANT_NUMBER(returnValue, " + fields[ 0 ] + ");\n";
+						output +=
+							"  SET_CONSTANT(env, returnValue, " + fields[ 0 ] + ", number);\n";
 					} else if ( fields[ 0 ].match( /^#(if|endif)/ ) ) {
 						output += line + "\n";
 					}
@@ -50,11 +51,11 @@ function parseFileForEnums( destination, fileName ) {
 					enumName = line
 						.replace( startingBraceRegex, "" )
 						.replace( /\s*;.*$/, "" );
-					enumList.push( "  SET_ENUM(target, " + enumName + ");" );
+					enumList.push( "  SET_ENUM(env, exports, " + enumName + ");" );
 					fs.writeFileSync( destination,
 						[
-							"static Local<Object> bind_" + enumName + "() {",
-							"  Local<Object> returnValue = Nan::New<Object>();"
+							"static napi_value bind_" + enumName + "(napi_env env) {",
+							"  napi_value returnValue = napi_create_object(env);"
 						].join( "\n" ) + "\n",
 						{ flag: "a" } );
 				} else if ( fields[ 0 ] !== "typedef" && fields[ 0 ] !== "{" ) {
@@ -80,7 +81,7 @@ fs.writeFileSync( enumsCC,
 	{ flag: "a" } );
 
 fs.writeFileSync( enumsCC, [
-		"NAN_MODULE_INIT(InitEnums) {",
+		"NAPI_MODULE_INIT(InitEnums) {",
 		parseFileForEnums( enumsCC, includePaths[ "octypes.h" ] ),
 		parseFileForEnums( enumsCC, includePaths[ "ocpresence.h" ] ),
 		"}"

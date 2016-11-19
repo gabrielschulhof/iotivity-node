@@ -15,6 +15,7 @@
  */
 
 #include <node_jsvmapi.h>
+#include <node_api_helpers.h>
 #include "../common.h"
 #include "../structures/oc-device-info.h"
 #include "../structures/oc-platform-info.h"

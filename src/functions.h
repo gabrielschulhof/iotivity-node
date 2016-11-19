@@ -18,6 +18,7 @@
 #define __IOTIVITY_NODE_FUNCTIONS_H__
 
 #include <node_jsvmapi.h>
+#include <node_api_helpers.h>
 
 #define SET_FUNCTION(env, destination, functionName)  \
   napi_set_property((env), (destination),             \
