@@ -17,8 +17,9 @@
 #ifndef __IOTIVITY_NODE_HANDLES_H__
 #define __IOTIVITY_NODE_HANDLES_H__
 
-#include <nan.h>
 #include <map>
+#include <node_jsvmpapi.h>
+#include <node_api_helpers.h>
 extern "C" {
 #include <ocstack.h>
 }
@@ -34,14 +35,6 @@ class JSHandle {
 	  	napi_create_constructor_for_wrap(env, constructor_callback);
 	  napi_set_function_name(env, constructor,
 	  	napi_property_name(env, jsName::jsClassName()));
-/*
-      theTemplate->SetClassName(
-          Nan::New(jsName::jsClassName()).ToLocalChecked());
-      theTemplate->InstanceTemplate()->SetInternalFieldCount(1);
-      Nan::Set(Nan::GetFunction(theTemplate).ToLocalChecked(),
-               Nan::New("displayName").ToLocalChecked(),
-               Nan::New(jsName::jsClassName()).ToLocalChecked());
-*/
       returnValue = napi_create_persistent(env, constructor);
     }
     return returnValue;
@@ -62,9 +55,9 @@ class JSHandle {
   static handleType Resolve(napi_env env, napi_value jsObject) {
     handleType returnValue = 0;
 
-//    if (Nan::New(theTemplate())->HasInstance(jsObject)) {
+    if (napi_instanceof(env, jsObject, napi_get_persistent_value(theTemplate())) {
       returnValue = (handleType)napi_unwrap(env, jsObject);
-//    }
+    }
     if (!returnValue) {
 		napi_throw_type_error(env, 
       		(std::string("Object is not of type ") + jsName::jsClassName())
@@ -83,10 +76,9 @@ template <typename handleType>
 class CallbackInfo {
  public:
   handleType handle;
-  Nan::Callback callback;
-  Nan::Persistent<v8::Object> jsHandle;
-  v8::Local<v8::Object> Init(v8::Local<v8::Object> _jsHandle,
-                             v8::Local<v8::Function> jsCallback) {
+  napi_persistent callback;
+  napi_persistent jsHandle;
+  napi_value Init(napi_value _jsHandle, napi_value jsCallback) {
     callback.Reset(jsCallback);
     jsHandle.Reset(_jsHandle);
     return _jsHandle;
