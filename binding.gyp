@@ -192,7 +192,8 @@
 				"generated/enums.cc",
 				"generated/functions.cc",
 				"src/functions/simple.cc",
-				"src/main.cc"
+				"src/main.cc",
+				"src/structures/handles.cc"
 			],
 			"dependencies": [ "csdk", "generateconstants", "generateenums", "generatefunctions" ]
 		}

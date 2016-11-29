@@ -15,38 +15,42 @@
  */
 
 #include "handles.h"
-#include <nan.h>
 #include "../common.h"
-
-using namespace v8;
 
 std::map<OCResourceHandle, Nan::Persistent<v8::Object> *>
     JSOCResourceHandle::handles;
 
-Local<Array> jsArrayFromBytes(unsigned char *bytes, uint32_t length) {
+napi_value jsArrayFromBytes(napi_env env, unsigned char *bytes, uint32_t length) {
   uint32_t index;
-  Local<Array> returnValue = Nan::New<Array>(length);
+  napi_value returnValue = napi_create_array_with_length(env, length);
 
   for (index = 0; index < length; index++) {
-    Nan::Set(returnValue, index, Nan::New(bytes[index]));
+  	napi_set_element(env, returnValue, index,
+		napi_create_number(env, bytes[index]));
   }
   return returnValue;
 }
 
-bool fillCArrayFromJSArray(unsigned char *bytes, uint32_t length,
-                           Local<Array> array) {
+bool fillCArrayFromJSArray(napi_env env, unsigned char *bytes, uint32_t length,
+                           napi_value array) {
   uint32_t index, arrayLength;
 
-  arrayLength = array->Length();
+  if (!napi_is_array(env, array)) {
+  	 napi_throw_type_error(env, (char *)"not an array");
+	 return false;
+  }
+
+  arrayLength = napi_get_array_length(env, array);
   if (arrayLength != length) {
-    Nan::ThrowError("byte array has the wrong length");
+    napi_throw_error(env, (char *)"byte array has the wrong length");
     return false;
   }
 
   for (index = 0; index < length; index++) {
-    Local<Value> byte = Nan::Get(array, index).ToLocalChecked();
-    VALIDATE_VALUE_TYPE(byte, IsUint32, "byte array item", return false);
-    bytes[index] = (unsigned char)(Nan::To<uint32_t>(byte).FromJust());
+    napi_value byte = napi_get_element(env, array, index);
+    VALIDATE_VALUE_TYPE(env, byte, napi_number, "byte array item",
+	                    return false);
+    bytes[index] = (unsigned char)(napi_get_value_uint32(env, byte));
   }
 
   return true;

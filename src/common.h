@@ -50,7 +50,7 @@ extern "C" {
 
 #define VALIDATE_VALUE_TYPE(env, value, typecheck, message, ...)                 \
 	if (napi_get_type_of_value((env), (value)) != (typecheck)) { \
-	napi_throw_type_error((env), \
+	napi_throw_type_error((env), (char *)\
         (std::string(message) + " must satisfy " #typecheck "()").c_str()); \
     __VA_ARGS__;                                                            \
   }

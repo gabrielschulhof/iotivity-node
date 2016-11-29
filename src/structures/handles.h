@@ -17,12 +17,18 @@
 #ifndef __IOTIVITY_NODE_HANDLES_H__
 #define __IOTIVITY_NODE_HANDLES_H__
 
-#include <map>
 #include <node_jsvmpapi.h>
+#include <map>
 #include <node_api_helpers.h>
 extern "C" {
 #include <ocstack.h>
 }
+
+template<typename handleType>
+struct JSHandleData {
+	const char *typeName;
+	handleType data;
+};
 
 template <class jsName, typename handleType>
 class JSHandle {
@@ -40,12 +46,27 @@ class JSHandle {
     return returnValue;
   }
 
+  static JSHandleData<handleType> *getMetaData(napi_env env, napi_value jsObject) {
+  	struct JSHandleData<handleType> *metaData =
+		(struct JSHandleData<handleType> *)napi_unwrap(env, jsObject);
+	if (metaData && metaData->typeName == jsName::jsClassName()) {
+		return metaData;
+	}
+	napi_throw_type_error(env, 
+      	(std::string("Object is not of type ") + jsName::jsClassName())
+          .c_str());
+	return 0;
+  }s
+
  public:
   static napi_value New(napi_env env, handleType data) {
     napi_value returnValue =
 		napi_new_instance(env, napi_get_persistent_value(theTemplate(env)),
 			0, 0);
-    napi_wrap(env, returnValue, data, 0, 0);
+	struct JSHandleData<handleType> *metaData = new struct JSHandleHandleData<handleType>;
+	metaData->typeName = jsName::jsClassName();
+	metaData->data = data;
+    napi_wrap(env, returnValue, metaData, 0, 0);
 
     return returnValue;
   }
@@ -53,17 +74,14 @@ class JSHandle {
   // If the object is not of the expected type, or if the pointer inside the
   // object has already been removed, then we must throw an error
   static handleType Resolve(napi_env env, napi_value jsObject) {
-    handleType returnValue = 0;
+	struct JSHandleData<handleType> *metaData = getMetaData(env, jsObject);
+	return metaData ? metaData->data : 0;
+  }
 
-    if (napi_instanceof(env, jsObject, napi_get_persistent_value(theTemplate())) {
-      returnValue = (handleType)napi_unwrap(env, jsObject);
-    }
-    if (!returnValue) {
-		napi_throw_type_error(env, 
-      		(std::string("Object is not of type ") + jsName::jsClassName())
-              .c_str());
-    }
-    return returnValue;
+  static void Invalidate(napi_value jsObject) {
+	struct JSHandleData<handleType> *metaData = getMetaData(env, jsObject);
+	delete metaData;
+	napi_wrap(env, jsObject, 0, 0, 0);
   }
 };
 
@@ -75,23 +93,24 @@ class JSOCRequestHandle : public JSHandle<JSOCRequestHandle, OCRequestHandle> {
 template <typename handleType>
 class CallbackInfo {
  public:
+  napi_env env;
   handleType handle;
   napi_persistent callback;
   napi_persistent jsHandle;
   napi_value Init(napi_value _jsHandle, napi_value jsCallback) {
-    callback.Reset(jsCallback);
-    jsHandle.Reset(_jsHandle);
+  	callback = napi_create_persistent(env, jsCallback);
+	jsHandle = napi_create_persistent(env, _jsHandle);
     return _jsHandle;
   }
-  CallbackInfo() : handle(0) {}
+  CallbackInfo(napi_env _env) : env(_env), handle(0), callback(0), jsHandle(0) {}
   virtual ~CallbackInfo() {
-    if (!jsHandle.IsEmpty()) {
-      v8::Local<v8::Object> theObject = Nan::New(jsHandle);
-      Nan::SetInternalFieldPointer(theObject, 0, 0);
-      Nan::ForceSet(theObject, Nan::New("stale").ToLocalChecked(),
-                    Nan::New(true),
-                    (v8::PropertyAttribute)(v8::ReadOnly | v8::DontDelete));
-      jsHandle.Reset();
+    if (jsHandle) {
+      napi_value theObject = napi_get_persistent_value(env, jsHandle);
+	  napi_wrap(env, theObject, 0, 0, 0);
+	  napi_set_property(env, theObject, napi_property_name(env, "stale"),
+	  	napi_create_boolean(env, true));
+      napi_release_persistent(env, jsHandle);
+	  napi_release_persistent(env, callback);
     }
   }
 };
@@ -113,12 +132,13 @@ class JSOCResourceHandle
     : public JSHandle<JSOCResourceHandle, CallbackInfo<OCResourceHandle> *> {
  public:
   static const char *jsClassName() { return "OCResourceHandle"; }
-  static std::map<OCResourceHandle, Nan::Persistent<v8::Object> *> handles;
+  static std::map<OCResourceHandle, napi_persistent>
+      handles;
 };
 
-v8::Local<v8::Array> jsArrayFromBytes(unsigned char *bytes, uint32_t length);
+napi_value jsArrayFromBytes(napi_env env, unsigned char *bytes, uint32_t length);
 
 bool fillCArrayFromJSArray(unsigned char *bytes, uint32_t length,
-                           v8::Local<v8::Array> array);
+                           napi_value array);
 
 #endif /* __IOTIVITY_NODE_HANDLES_H__ */
