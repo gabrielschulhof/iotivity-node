@@ -8,7 +8,6 @@
 
 	"target_defaults": {
 		"include_dirs": [
-			"<!(node -e \"require( 'nan' );\")",
 			"<(module_root_dir)/src"
 		],
 		"conditions": [
