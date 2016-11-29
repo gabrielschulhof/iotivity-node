@@ -17,7 +17,7 @@
 #include "handles.h"
 #include "../common.h"
 
-std::map<OCResourceHandle, Nan::Persistent<v8::Object> *>
+std::map<OCResourceHandle, napi_persistent>
     JSOCResourceHandle::handles;
 
 napi_value jsArrayFromBytes(napi_env env, unsigned char *bytes, uint32_t length) {

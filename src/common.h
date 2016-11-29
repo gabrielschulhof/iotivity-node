@@ -105,12 +105,4 @@ void addStringArray(napi_env env, napi_value destination, OCStringLL *source,
 #define ADD_STRING_ARRAY(env, destination, source, memberName) \
   addStringArray((env), (destination), (source)->memberName, #memberName)
 
-#ifdef DEBUG
-void console_log(v8::Local<v8::Value> argument);
-v8::Local<v8::Value> json_stringify(v8::Local<v8::Object> jsObject);
-void debug_print(const char *message, ...);
-#else
-#define debug_print()
-#endif /* def DEBUG */
-
 #endif /* __IOTIVITY_NODE_FUNCTIONS_INTERNAL_H__ */

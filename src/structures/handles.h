@@ -17,7 +17,7 @@
 #ifndef __IOTIVITY_NODE_HANDLES_H__
 #define __IOTIVITY_NODE_HANDLES_H__
 
-#include <node_jsvmpapi.h>
+#include <node_jsvmapi.h>
 #include <map>
 #include <node_api_helpers.h>
 extern "C" {
@@ -56,14 +56,14 @@ class JSHandle {
       	(std::string("Object is not of type ") + jsName::jsClassName())
           .c_str());
 	return 0;
-  }s
+  }
 
  public:
   static napi_value New(napi_env env, handleType data) {
     napi_value returnValue =
 		napi_new_instance(env, napi_get_persistent_value(theTemplate(env)),
 			0, 0);
-	struct JSHandleData<handleType> *metaData = new struct JSHandleHandleData<handleType>;
+	struct JSHandleData<handleType> *metaData = new struct JSHandleData<handleType>;
 	metaData->typeName = jsName::jsClassName();
 	metaData->data = data;
     napi_wrap(env, returnValue, metaData, 0, 0);
@@ -78,7 +78,7 @@ class JSHandle {
 	return metaData ? metaData->data : 0;
   }
 
-  static void Invalidate(napi_value jsObject) {
+  static void Invalidate(napi_env env, napi_value jsObject) {
 	struct JSHandleData<handleType> *metaData = getMetaData(env, jsObject);
 	delete metaData;
 	napi_wrap(env, jsObject, 0, 0, 0);
