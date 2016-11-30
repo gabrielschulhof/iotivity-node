@@ -52,21 +52,21 @@ void c_OCDeviceInfoFreeMembers(OCDeviceInfo *info) {
 }
 
 bool c_StringArrayFromProperty(napi_env env, napi_value source,
-	const char *propertyName,
+                               const char *propertyName,
                                OCStringLL **destination) {
-  napi_value sourceValue = napi_get_property(env, source,
-  	napi_property_name(env, propertyName));
+  napi_value sourceValue =
+      napi_get_property(env, source, napi_property_name(env, propertyName));
   if (!napi_is_array(env, sourceValue)) {
-  	napi_throw_type_error(env,
-		(std::string("device info ") + propertyName +
-			" must be an array").c_str());
-	return false;
+    napi_throw_type_error(
+        env, (std::string("device info ") + propertyName + " must be an array")
+                 .c_str());
+    return false;
   }
   uint32_t index, length = napi_get_array_length(env, sourceValue);
   OCStringLL *local = 0, **previous = &local;
 
   for (index = 0; index < length; index++, previous = &((*previous)->next)) {
-  	napi_value itemValue = napi_get_element(env, sourceValue, index);
+    napi_value itemValue = napi_get_element(env, sourceValue, index);
     VALIDATE_VALUE_TYPE(
         env, itemValue, napi_string,
         (std::string("device info ") + propertyName + " list item").c_str(),

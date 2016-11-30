@@ -23,7 +23,8 @@ extern "C" {
 }
 
 napi_value js_OCPlatformInfo(napi_env env, OCPlatformInfo *platformInfo);
-bool c_OCPlatformInfo(napi_env env, napi_value platformInfo, OCPlatformInfo *info);
+bool c_OCPlatformInfo(napi_env env, napi_value platformInfo,
+                      OCPlatformInfo *info);
 void c_OCPlatformInfoFreeMembers(OCPlatformInfo *info);
 
 #endif /* __IOTIVITY_NODE_OCPLATFORMINFO_H__ */

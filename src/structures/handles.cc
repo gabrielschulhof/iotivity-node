@@ -17,16 +17,15 @@
 #include "handles.h"
 #include "../common.h"
 
-std::map<OCResourceHandle, napi_persistent>
-    JSOCResourceHandle::handles;
+std::map<OCResourceHandle, napi_persistent> JSOCResourceHandle::handles;
 
 napi_value jsArrayFromBytes(napi_env env, unsigned char *bytes, uint32_t length) {
   uint32_t index;
   napi_value returnValue = napi_create_array_with_length(env, length);
 
   for (index = 0; index < length; index++) {
-  	napi_set_element(env, returnValue, index,
-		napi_create_number(env, bytes[index]));
+    napi_set_element(env, returnValue, index,
+                     napi_create_number(env, bytes[index]));
   }
   return returnValue;
 }
@@ -36,8 +35,8 @@ bool fillCArrayFromJSArray(napi_env env, unsigned char *bytes, uint32_t length,
   uint32_t index, arrayLength;
 
   if (!napi_is_array(env, array)) {
-  	 napi_throw_type_error(env, (char *)"not an array");
-	 return false;
+    napi_throw_type_error(env, (char *)"not an array");
+    return false;
   }
 
   arrayLength = napi_get_array_length(env, array);
@@ -49,7 +48,7 @@ bool fillCArrayFromJSArray(napi_env env, unsigned char *bytes, uint32_t length,
   for (index = 0; index < length; index++) {
     napi_value byte = napi_get_element(env, array, index);
     VALIDATE_VALUE_TYPE(env, byte, napi_number, "byte array item",
-	                    return false);
+                        return false);
     bytes[index] = (unsigned char)(napi_get_value_uint32(env, byte));
   }
 

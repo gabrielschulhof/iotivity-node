@@ -17,13 +17,13 @@
 #ifndef __IOTIVITY_NODE_FUNCTIONS_H__
 #define __IOTIVITY_NODE_FUNCTIONS_H__
 
-#include <node_jsvmapi.h>
 #include <node_api_helpers.h>
+#include <node_jsvmapi.h>
 
-#define SET_FUNCTION(env, destination, functionName)  \
-  napi_set_property((env), (destination),             \
-	  napi_property_name((env), #functionName),       \
-	  napi_create_function((env), bind_##functionName))
+#define SET_FUNCTION(env, destination, functionName)          \
+  napi_set_property((env), (destination),                     \
+                    napi_property_name((env), #functionName), \
+                    napi_create_function((env), bind_##functionName))
 
 NAPI_MODULE_INIT(InitFunctions);
 

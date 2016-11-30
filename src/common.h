@@ -34,40 +34,42 @@ extern "C" {
     }                                                                          \
   } while (0)
 
-#define VALIDATE_ARGUMENT_COUNT(env, args, length)          \
-  if (napi_get_cb_args_length((env), (args)) < length) {    \
-  	napi_throw_error((env),                                 \
-		(char *)"Argument count must be exactly " #length); \
-	return;                                                 \
-  }
-
-#define VALIDATE_ARGUMENT_TYPE(env, args, index, typecheck)            \
-  if (napi_get_type_of_value((env), (args)[(index)]) != (typecheck)) {   \
-    napi_throw_type_error((env),                                       \
-      (char *)"Type of argument " #index " must be " #typecheck);      \
-    return;                                                            \
-  }
-
-#define VALIDATE_VALUE_TYPE(env, value, typecheck, message, ...)                 \
-	if (napi_get_type_of_value((env), (value)) != (typecheck)) { \
-	napi_throw_type_error((env), (char *)\
-        (std::string(message) + " must satisfy " #typecheck "()").c_str()); \
-    __VA_ARGS__;                                                            \
-  }
-
-#define VALIDATE_ARGUMENT_TYPE_OR_NULL(env, args, index, typecheck)      \
-  if (!(napi_get_type_of_value((env), (args)[(index)]) == typecheck ||   \
-  		napi_get_type_of_value((env), (args)[(index)]) == napi_null)) {  \
-    napi_throw_type_error((env),                                         \
-      (char *)"Type of argument " #index " must be " #typecheck " or napi_null"); \
+#define VALIDATE_ARGUMENT_COUNT(env, args, length)                       \
+  if (napi_get_cb_args_length((env), (args)) < length) {                 \
+    napi_throw_error((env),                                              \
+                     (char *)"Argument count must be exactly " #length); \
     return;                                                              \
   }
 
-#define SET_STRING_IF_NOT_NULL(env, destination, source, memberName) \
-  if ((source)->memberName) {                                        \
-    napi_set_property((env), (destination), \
-		napi_property_name((env), #memberName), \
-		napi_create_string((env), (source)->memberName)); \
+#define VALIDATE_ARGUMENT_TYPE(env, args, index, typecheck)                \
+  if (napi_get_type_of_value((env), (args)[(index)]) != (typecheck)) {     \
+    napi_throw_type_error(                                                 \
+        (env), (char *)"Type of argument " #index " must be " #typecheck); \
+    return;                                                                \
+  }
+
+#define VALIDATE_VALUE_TYPE(env, value, typecheck, message, ...)            \
+  if (napi_get_type_of_value((env), (value)) != (typecheck)) {              \
+    napi_throw_type_error((env), (char *)(std::string(message) +            \
+                                          " must satisfy " #typecheck "()") \
+                                     .c_str());                             \
+    __VA_ARGS__;                                                            \
+  }
+
+#define VALIDATE_ARGUMENT_TYPE_OR_NULL(env, args, index, typecheck)        \
+  if (!(napi_get_type_of_value((env), (args)[(index)]) == typecheck ||     \
+        napi_get_type_of_value((env), (args)[(index)]) == napi_null)) {    \
+    napi_throw_type_error((env),                                           \
+                          (char *)"Type of argument " #index               \
+                                  " must be " #typecheck " or napi_null"); \
+    return;                                                                \
+  }
+
+#define SET_STRING_IF_NOT_NULL(env, destination, source, memberName)    \
+  if ((source)->memberName) {                                           \
+    napi_set_property((env), (destination),                             \
+                      napi_property_name((env), #memberName),           \
+                      napi_create_string((env), (source)->memberName)); \
   }
 
 #define SET_VALUE_ON_OBJECT(destination, source, memberName, type) \
@@ -91,7 +93,8 @@ extern "C" {
     }                                                                        \
   } while (0)
 
-#define VALIDATE_AND_ASSIGN(destination, source, memberName, destinationType, typecheck, message, convertType, ...)             \
+#define VALIDATE_AND_ASSIGN(destination, source, memberName, destinationType, \
+                            typecheck, message, convertType, ...)             \
   Local<Value> memberName =                                                   \
       Nan::Get(source, Nan::New(#memberName).ToLocalChecked())                \
           .ToLocalChecked();                                                  \

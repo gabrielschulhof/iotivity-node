@@ -17,8 +17,8 @@
 #ifndef __IOTIVITY_NODE_ENUMS_H__
 #define __IOTIVITY_NODE_ENUMS_H__
 
-#include <node_jsvmapi.h>
 #include <node_api_helpers.h>
+#include <node_jsvmapi.h>
 
 NAPI_MODULE_INIT(InitEnums);
 

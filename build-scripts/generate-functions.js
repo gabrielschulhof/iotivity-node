@@ -50,7 +50,7 @@ fs.writeFileSync( protosH, [
 	"#ifndef __IOTIVITY_NODE_FUNCTION_PROTOTYPES_H__",
 	"#define __IOTIVITY_NODE_FUNCTION_PROTOTYPES_H__",
 	"",
-	"#include <nan.h>",
+	"#include <node_jsvmapi.h>",
 	""
 ]
 .concat( _.map( methods, function( item ) {

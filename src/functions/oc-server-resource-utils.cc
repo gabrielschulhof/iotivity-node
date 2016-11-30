@@ -14,21 +14,23 @@
  * limitations under the License.
  */
 
-#include <nan.h>
+#include <node_jsvmapi.h>
 #include "../common.h"
 #include "../structures/handles.h"
 
 extern "C" {
 #include <ocstack.h>
 }
-/*
+
 using namespace v8;
 
 #define GET_STRING_COUNT(api)                                                 \
   do {                                                                        \
-    VALIDATE_ARGUMENT_COUNT(info, 2);                                         \
-    VALIDATE_ARGUMENT_TYPE(info, 0, IsObject);                                \
-    VALIDATE_ARGUMENT_TYPE(info, 1, IsObject);                                \
+    VALIDATE_ARGUMENT_COUNT(env, info, 2);                                    \
+    napi_value arguments[2];                                                  \
+    napi_get_cb_args(env, info, arguments, 2);                                \
+    VALIDATE_ARGUMENT_TYPE(env, arguments, 0, napi_object);                   \
+    VALIDATE_ARGUMENT_TYPE(env, arguments, 1, napi_object);                   \
                                                                               \
     uint8_t interfaceCount = 0;                                               \
     OCStackResult result;                                                     \
@@ -56,28 +58,31 @@ NAN_METHOD(bind_OCGetNumberOfResourceTypes) {
   GET_STRING_COUNT(OCGetNumberOfResourceTypes);
 }
 
-*/
 #define RETURN_RESOURCE_HANDLE(handle)                            \
   do {                                                            \
     OCResourceHandle localHandle = (handle);                      \
     if (localHandle) {                                            \
-      if (JSOCResourceHandle::handles[localHandle]->IsEmpty()) {  \
+      if (!JSOCResourceHandle::handles[localHandle]) {            \
         Nan::ThrowError("JS handle not found for native handle"); \
         return;                                                   \
       }                                                           \
-      info.GetReturnValue().Set(                                  \
-          Nan::New(*(JSOCResourceHandle::handles[localHandle]))); \
+      napi_set_return_value(env, info,                            \
+        JSOCResourceHandle::handles[localHandle]));               \
     } else {                                                      \
-      info.GetReturnValue().Set(Nan::Null());                     \
+      napi_set_return_value(env, info, napi_get_null(env)));      \
     }                                                             \
   } while (0)
 
 NAN_METHOD(bind_OCGetResourceHandle) {
-  VALIDATE_ARGUMENT_COUNT(info, 1);
-  VALIDATE_ARGUMENT_TYPE(info, 0, IsUint32);
+  VALIDATE_ARGUMENT_COUNT(env, info, 1);
+
+  napi_value arguments[1];
+  napi_get_cb_args(env, info, arguments, 1);
+
+  VALIDATE_ARGUMENT_TYPE(env, arguments, 0, napi_number);
 
   RETURN_RESOURCE_HANDLE(
-      OCGetResourceHandle((uint8_t)(Nan::To<uint32_t>(info[0]).FromJust())));
+      OCGetResourceHandle((uint8_t)(napi_get_value_uint32(env, arguments[0]))));
 }
 /*
 #define RESOURCE_BY_INDEX_ACCESSOR_BOILERPLATE()                          \
