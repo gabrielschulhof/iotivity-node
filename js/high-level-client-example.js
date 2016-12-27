@@ -38,7 +38,11 @@ client.on( "resourcefound", function( resource ) {
 		console.log( "This is the resource we want to observe" );
 
 		// Let's start observing the resource.
-		resource.on( "update", resourceUpdate );
+		resource
+			.on( "update", resourceUpdate )
+			.on( "delete", function( resource ) {
+				console.log( "Resource is gone: " + JSON.stringify( resource, null, 4 ) );
+			} );
 	}
 } );
 

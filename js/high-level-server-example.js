@@ -73,34 +73,76 @@ var lightResourceRequestHandlers = {
 	retrieve: function( request ) {
 		request.respond( request.target ).catch( handleError );
 		observerCount += ( "observe" in request ) ? ( request.observe ? 1 : -1 ) : 0;
+		console.log( "observerCount: " + observerCount );
 	}
 };
 
 if ( device.device.uuid ) {
 
-	console.log( "Registering OCF resource" );
+	// Read keystrokes from stdin
+	var stdin = process.stdin;
 
-	device.server.register( {
-		resourcePath: "/a/high-level-example",
-		resourceTypes: [ "core.light" ],
-		interfaces: [ "oic.if.baseline" ],
-		discoverable: true,
-		observable: true,
-		properties: { someValue: 0, someOtherValue: "Helsinki" }
-	} ).then(
-		function( resource ) {
-			console.log( "OCF resource successfully registered" );
-			lightResource = resource;
+	stdin.setRawMode( true );
+	stdin.resume();
+	stdin.setEncoding( "utf8" );
+	stdin.on( "data", function( key ) {
+		switch ( key ) {
 
-			// Add event handlers for each supported request type
-			_.each( lightResourceRequestHandlers, function( callback, requestType ) {
-				resource[ "on" + requestType ]( function( request ) {
-					console.log( "Received request " + JSON.stringify( request, null, 4 ) );
-					callback( request );
+		case "r":
+			console.log( "Registering OCF resource" );
+
+			device.server.register( {
+				resourcePath: "/a/high-level-example",
+				resourceTypes: [ "core.light" ],
+				interfaces: [ "oic.if.baseline" ],
+				discoverable: true,
+				observable: true,
+				properties: { someValue: 0, someOtherValue: "Helsinki" }
+			} ).then(
+				function( resource ) {
+					console.log( "OCF resource successfully registered" );
+					lightResource = resource;
+
+					// Add event handlers for each supported request type
+					_.each( lightResourceRequestHandlers, function( callback, requestType ) {
+						resource[ "on" + requestType ]( function( request ) {
+							console.log( "Received request " +
+								JSON.stringify( request, null, 4 ) );
+							callback( request );
+						} );
+					} );
+				},
+				function( error ) {
+					throw error;
 				} );
-			} );
-		},
-		function( error ) {
-			throw error;
-		} );
+			break;
+
+		case "u":
+			lightResource.unregister().then(
+				function() {
+					lightResource = null;
+				},
+				function( error ) {
+					console.log( "Failed to unregister: " + error.stack + "\n" +
+						JSON.stringify( error, null, 4 ) );
+				} );
+			break;
+
+		// ^C
+		case "\u0003":
+
+			// Exit
+			process.exit( 0 );
+			break;
+
+		default:
+			return;
+		}
+
+		console.log( "Press 'r' to register resource\nPress 'u' to unregister resource\n" +
+			"Press Ctrl+C to exit" );
+	} );
+
+	console.log( "Press 'r' to register resource\nPress 'u' to unregister resource\n" +
+		"Press Ctrl+C to exit" );
 }
