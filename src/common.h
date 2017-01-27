@@ -23,8 +23,8 @@ extern "C" {
 #include <ocstack.h>
 }
 
-#define TRY_CALL(callback, context, argumentCount, arguments, jsReturnValue,   \
-                 exceptionReturn)                                              \
+#define TRY_CALL(env, callback, context, argumentCount, arguments,             \
+                 jsReturnValue, exceptionReturn)                               \
   do {                                                                         \
     Nan::TryCatch tryCatch;                                                    \
     jsReturnValue = (callback)->Call((context), (argumentCount), (arguments)); \

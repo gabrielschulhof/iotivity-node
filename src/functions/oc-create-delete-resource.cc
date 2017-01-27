@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include <nan.h>
+#include <node_jsvmapi.h>
 #include <map>
 
 #include "../common.h"
@@ -25,17 +25,18 @@ extern "C" {
 #include <ocstack.h>
 }
 
-using namespace v8;
-
 static OCEntityHandlerResult defaultEntityHandler(
     OCEntityHandlerFlag flag, OCEntityHandlerRequest *request, void *context) {
   // Construct arguments to the JS callback and then call it, recording its
   // return value
-  Local<Value> jsCallbackArguments[2] = {Nan::New(flag),
-                                         js_OCEntityHandlerRequest(request)};
-  Local<Value> returnValue;
-  TRY_CALL(&(((CallbackInfo<OCResourceHandle> *)context)->callback),
-           Nan::GetCurrentContext()->Global(), 2, jsCallbackArguments,
+  napi_env env = napi_get_current_env();
+  napi_value jsCallbackArguments[2] = {
+    napi_create_number(env, flag),
+	js_OCEntityHandlerRequest(request)
+  };
+  napi_value returnValue;
+  TRY_CALL(env, &(((CallbackInfo<OCResourceHandle> *)context)->callback),
+           napi_get_global_scope(env), 2, jsCallbackArguments,
            returnValue, OC_EH_ERROR);
 
   VALIDATE_VALUE_TYPE(returnValue, IsUint32, "OCEntityHandler return value", );

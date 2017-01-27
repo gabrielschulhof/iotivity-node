@@ -190,6 +190,7 @@
 				"generated/constants.cc",
 				"generated/enums.cc",
 				"generated/functions.cc",
+				"src/functions/oc-server-resource-utils.cc",
 				"src/functions/simple.cc",
 				"src/main.cc",
 				"src/structures/handles.cc"
