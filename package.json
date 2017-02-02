@@ -5,7 +5,9 @@
   "repository": "https://github.com/otcshare/iotivity-node/",
   "license": "Apache-2.0",
   "main": "index.js",
-  "engines": { "node": ">0.10" },
+  "engines": {
+    "node": ">0.10"
+  },
   "keywords": [
     "oic",
     "iotivity",
@@ -48,6 +50,7 @@
     "glob": "^7.1.1",
     "grunt": "^0.4.5",
     "grunt-contrib-clean": "^1.0.0",
+    "grunt-contrib-requirejs": "^1.0.0",
     "grunt-coveralls": "^1.0.1",
     "grunt-esformatter": "^1.0.1",
     "grunt-eslint": "18.1.0",

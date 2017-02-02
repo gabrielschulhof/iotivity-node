@@ -12,5 +12,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+( function( root, factory ) {
+
+	// Not AMD. Assume Node.
+	if ( !( typeof define === "function" && define.amd ) ) {
+		define = function( dependencies, factory ) {
+			module.exports = factory.apply( root, dependencies.map( require ) );
+		};
+	}
+	define( [
+		"bindings"
+	], factory );
+} )( this,
+function( bindings ) {
+
 // Return the low-level API
-module.exports = require( "bindings" )( "iotivity" );
+return bindings( "iotivity" );
+
+} );
