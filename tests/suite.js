@@ -54,10 +54,9 @@ function spawnOne( assert, options ) {
 		// What to put into require() to load iotivity-node
 		.concat( [ process.argv[ 2 ] ] );
 
-	theChild = childProcess.spawn(
-		"node", commandLine, {
-			stdio: [ process.stdin, "pipe", process.stderr, "ipc" ]
-		} );
+	theChild = childProcess.spawn( "node", commandLine, {
+		stdio: [ process.stdin, "pipe", process.stderr, "ipc" ]
+	} );
 	runningProcesses.push( theChild );
 
 	theChild

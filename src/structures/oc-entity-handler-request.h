@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-#include <node_api.h>
-#include <stdio.h>
-#include "constants.h"
-#include "enums.h"
-#include "functions.h"
-#include "structures/handles.h"
+#ifndef __IOTIVITY_NODE_STRUCTURES_H__
+#define __IOTIVITY_NODE_STRUCTURES_H__
 
-void Init(napi_env env, napi_value exports, napi_value module, void *) {
-  HELPER_CALL(InitEnums(env, exports), THROW_BODY(env, ));
-  HELPER_CALL(InitConstants(env, exports), THROW_BODY(env, ));
-  HELPER_CALL(InitFunctions(env, exports), THROW_BODY(env, ));
+#include "common.h"
+extern "C" {
+#include <ocstack.h>
 }
 
-NAPI_MODULE(iotivity, Init)
+std::string js_OCEntityHandlerRequest(napi_env env,
+                                      OCEntityHandlerRequest *request,
+                                      napi_value *result);
+
+#endif /* __IOTIVITY_NODE_STRUCTURES_H__ */

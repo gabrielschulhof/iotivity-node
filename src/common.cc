@@ -1,5 +1,3 @@
-#include "common.h"
-
 /*
  * Copyright 2016 Intel Corporation
  *
@@ -16,19 +14,43 @@
  * limitations under the License.
  */
 
-using namespace v8;
+#include "common.h"
 
-void addStringArray(Local<Object> destination, OCStringLL *source,
-                    const char *name) {
-  if (source) {
-    int counter;
-    OCStringLL *item;
-    for (item = source, counter = 0; item; item = item->next, counter++)
-      ;
-    Local<Array> jsArray = Nan::New<Array>(counter);
-    for (item = source, counter = 0; item; item = item->next, counter++) {
-      Nan::Set(jsArray, counter, Nan::New(item->value).ToLocalChecked());
-    }
-    Nan::Set(destination, Nan::New(name).ToLocalChecked(), jsArray);
+std::string js_ArrayFromBytes(napi_env env, unsigned char *bytes,
+                              uint32_t length, napi_value *array) {
+  uint32_t index;
+  napi_value oneValue;
+  NAPI_CALL_RETURN(env, napi_create_array_with_length(env, length, array));
+  for (index = 0; index < length; index++) {
+    NAPI_CALL_RETURN(env, napi_create_number(env, bytes[index], &oneValue));
+    NAPI_CALL_RETURN(env, napi_set_element(env, *array, index, oneValue));
+  }
+  return std::string();
+}
+
+std::string c_ArrayFromBytes(napi_env env, napi_value array,
+                             unsigned char *bytes, uint32_t length) {
+  uint32_t index, arrayLength;
+  napi_value oneValue;
+  NAPI_CALL_RETURN(env, napi_get_array_length(env, array, &arrayLength));
+  for (index = 0; index < arrayLength; index++) {
+    NAPI_CALL_RETURN(env, napi_get_element(env, array, index, &oneValue));
+    J2C_ASSIGN_VALUE_JS_RETURN(
+        unsigned char, bytes[index], env, oneValue, napi_number,
+        "byte array item " + std::to_string(index), uint32, uint32_t);
+  }
+  return std::string();
+}
+
+NapiHandleScope::NapiHandleScope(napi_env _env) : scope(nullptr), env(_env) {}
+
+std::string NapiHandleScope::open() {
+  NAPI_CALL_RETURN(env, napi_open_handle_scope(env, &scope));
+  return std::string();
+}
+
+NapiHandleScope::~NapiHandleScope() {
+  if (scope) {
+    NAPI_CALL(env, napi_close_handle_scope(env, scope), THROW_BODY(env, ));
   }
 }

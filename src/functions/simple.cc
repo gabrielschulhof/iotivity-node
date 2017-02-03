@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-#include <nan.h>
 #include "../common.h"
 #include "../structures/oc-device-info.h"
 #include "../structures/oc-platform-info.h"
@@ -23,93 +22,72 @@ extern "C" {
 #include <ocstack.h>
 }
 
-using namespace v8;
-
-NAN_METHOD(bind_OCInit) {
-  VALIDATE_ARGUMENT_COUNT(info, 3);
-  VALIDATE_ARGUMENT_TYPE_OR_NULL(info, 0, IsString);
-  VALIDATE_ARGUMENT_TYPE(info, 1, IsUint32);
-  VALIDATE_ARGUMENT_TYPE(info, 2, IsUint32);
-
-  info.GetReturnValue().Set(Nan::New(OCInit(
-      (const char *)(info[0]->IsString() ? (*String::Utf8Value(info[0])) : 0),
-      (uint16_t)Nan::To<uint32_t>(info[1]).FromJust(),
-      (OCMode)Nan::To<uint32_t>(info[2]).FromJust())));
+napi_value bind_OCStop(napi_env env, napi_callback_info info) {
+  C2J_SET_RETURN_VALUE(env, info, number, ((double)OCStop()));
 }
 
-NAN_METHOD(bind_OCStop) { info.GetReturnValue().Set(Nan::New(OCStop())); }
-
-NAN_METHOD(bind_OCProcess) { info.GetReturnValue().Set(Nan::New(OCProcess())); }
-
-NAN_METHOD(bind_OCStartPresence) {
-  VALIDATE_ARGUMENT_COUNT(info, 1);
-  VALIDATE_ARGUMENT_TYPE(info, 0, IsUint32);
-
-  info.GetReturnValue().Set(Nan::New(
-      OCStartPresence((uint32_t)Nan::To<uint32_t>(info[0]).FromJust())));
+napi_value bind_OCProcess(napi_env env, napi_callback_info info) {
+  C2J_SET_RETURN_VALUE(env, info, number, ((double)OCProcess()));
 }
 
-NAN_METHOD(bind_OCStopPresence) {
-  info.GetReturnValue().Set(Nan::New(OCStopPresence()));
+napi_value bind_OCStartPresence(napi_env env, napi_callback_info info) {
+  J2C_DECLARE_ARGUMENTS(env, info, 1);
+
+  J2C_DECLARE_VALUE_JS_THROW(uint32_t, ttl, env, arguments[0], napi_number,
+                             "ttl", uint32, uint32_t);
+
+  C2J_SET_RETURN_VALUE(env, info, number, ((double)OCStartPresence(ttl)));
 }
 
-NAN_METHOD(bind_OCSetDeviceInfo) {
-  VALIDATE_ARGUMENT_COUNT(info, 1);
-  VALIDATE_ARGUMENT_TYPE(info, 0, IsObject);
-
-  OCDeviceInfo deviceInfo;
-
-  if (!c_OCDeviceInfo(Nan::To<Object>(info[0]).ToLocalChecked(), &deviceInfo)) {
-    return;
-  }
-
-  OCStackResult result = OCSetDeviceInfo(deviceInfo);
-
-  c_OCDeviceInfoFreeMembers(&deviceInfo);
-
-  info.GetReturnValue().Set(Nan::New(result));
+napi_value bind_OCStopPresence(napi_env env, napi_callback_info info) {
+  C2J_SET_RETURN_VALUE(env, info, number, ((double)OCStopPresence()));
 }
 
-NAN_METHOD(bind_OCSetPlatformInfo) {
-  VALIDATE_ARGUMENT_COUNT(info, 1);
-  VALIDATE_ARGUMENT_TYPE(info, 0, IsObject);
+#define INFO_SETTER(cType, description, api)                                  \
+  J2C_DECLARE_ARGUMENTS(env, info, 1);                                        \
+  J2C_VALIDATE_VALUE_TYPE_THROW(env, arguments[0], napi_object, description); \
+                                                                              \
+  auto devInfo = std::unique_ptr<cType, void (*)(cType *)>(new_##cType(),     \
+                                                           delete_##cType);   \
+  HELPER_CALL_THROW(env, c_##cType(env, arguments[0], devInfo));              \
+                                                                              \
+  C2J_SET_RETURN_VALUE(env, info, number, ((double)api(*(devInfo.get()))));
 
-  OCPlatformInfo platformInfo;
-
-  if (!c_OCPlatformInfo(Nan::To<Object>(info[0]).ToLocalChecked(),
-                        &platformInfo)) {
-    return;
-  }
-
-  OCStackResult result = OCSetPlatformInfo(platformInfo);
-
-  c_OCPlatformInfoFreeMembers(&platformInfo);
-
-  info.GetReturnValue().Set(Nan::New(result));
+napi_value bind_OCSetDeviceInfo(napi_env env, napi_callback_info info) {
+  INFO_SETTER(OCDeviceInfo, "device info", OCSetDeviceInfo);
 }
 
-NAN_METHOD(bind_OCGetNumberOfResources) {
-  VALIDATE_ARGUMENT_COUNT(info, 1);
-  VALIDATE_ARGUMENT_TYPE(info, 0, IsObject);
+napi_value bind_OCSetPlatformInfo(napi_env env, napi_callback_info info) {
+  INFO_SETTER(OCPlatformInfo, "platform info", OCSetPlatformInfo);
+}
 
-  OCStackResult result;
-  uint8_t resourceCount = 0;
+napi_value bind_OCInit(napi_env env, napi_callback_info info) {
+  J2C_DECLARE_ARGUMENTS(env, info, 3);
+  J2C_GET_STRING_TRACKED_JS_THROW(ip, env, arguments[0], true, "address");
+  J2C_DECLARE_VALUE_JS_THROW(uint16_t, port, env, arguments[1], napi_number,
+                             "port", uint32, uint32_t);
+  J2C_DECLARE_VALUE_JS_THROW(OCMode, mode, env, arguments[2], napi_number,
+                             "mode", uint32, uint32_t);
+  C2J_SET_RETURN_VALUE(env, info, number, ((double)OCInit(ip, port, mode)));
+}
 
-  result = OCGetNumberOfResources(&resourceCount);
+napi_value bind_OCGetNumberOfResources(napi_env env, napi_callback_info info) {
+  J2C_DECLARE_ARGUMENTS(env, info, 1);
+  J2C_VALIDATE_VALUE_TYPE_THROW(env, arguments[0], napi_object, "receptacle");
+
+  uint8_t resourceCount;
+  OCStackResult result = OCGetNumberOfResources(&resourceCount);
 
   if (result == OC_STACK_OK) {
-    Nan::Set(Nan::To<Object>(info[0]).ToLocalChecked(),
-             Nan::New("count").ToLocalChecked(), Nan::New(resourceCount));
+    C2J_SET_PROPERTY_THROW(env, arguments[0], "count", number,
+                           ((double)resourceCount));
   }
 
-  info.GetReturnValue().Set(Nan::New(result));
+  C2J_SET_RETURN_VALUE(env, info, number, ((double)result));
 }
 
-NAN_METHOD(bind_OCGetServerInstanceIDString) {
-  VALIDATE_ARGUMENT_COUNT(info, 0);
-
-  const char *idString = OCGetServerInstanceIDString();
-
-  info.GetReturnValue().Set(idString ? (Nan::New(idString).ToLocalChecked())
-                                     : Nan::EmptyString());
+napi_value bind_OCGetServerInstanceIDString(napi_env env,
+                                            napi_callback_info info) {
+  const char *uuid = OCGetServerInstanceIDString();
+  C2J_SET_RETURN_VALUE(env, info, string_utf8, uuid, strlen(uuid));
 }

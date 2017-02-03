@@ -3,7 +3,7 @@
 		"externalOCTBStack": "<!(node -p \"( process.env.OCTBSTACK_CFLAGS && process.env.OCTBSTACK_LIBS ) ? 'true' : 'false';\")",
 		"internalOCTBStack_include_dirs": [
 			"<(module_root_dir)/iotivity-installed/include"
-		],
+		]
 	},
 
 	"target_defaults": {
@@ -66,7 +66,11 @@
 			# OSX quirk
 
 			[ "OS=='mac'", {
-				"xcode_settings": { "OTHER_CFLAGS": [ '-std=c++11' ] }
+				"xcode_settings": {
+					"OTHER_CFLAGS": [ '-std=c++11', '-stdlib=libc++' ],
+					"MACOSX_DEPLOYMENT_TARGET": "10.7",
+					"OTHER_LDFLAGS": [ '-stdlib=libc++' ]
+				}
 			} ]
 		],
 		"cflags_cc": [ '-std=c++11' ],
@@ -187,31 +191,38 @@
 		},
 		{
 			"target_name": "iotivity",
+			"cflags+": [ "-pedantic" ],
 			"sources": [
 				"generated/constants.cc",
 				"generated/enums.cc",
 				"generated/functions.cc",
 				"src/common.cc",
+				"src/functions/entity-handler.cc",
 				"src/functions/oc-create-delete-resource.cc",
 				"src/functions/oc-do-resource.cc",
 				"src/functions/oc-register-persistent-storage-handler.cc",
-				"src/functions/oc-set-default-device-entity-handler.cc",
 				"src/functions/oc-server-resource-utils.cc",
 				"src/functions/oc-server-response.cc",
+				"src/functions/oc-set-default-device-entity-handler.cc",
 				"src/functions/simple.cc",
 				"src/main.cc",
-				"src/structures.cc",
 				"src/structures/handles.cc",
 				"src/structures/oc-client-response.cc",
 				"src/structures/oc-dev-addr.cc",
 				"src/structures/oc-device-info.cc",
+				"src/structures/oc-entity-handler-request.cc",
 				"src/structures/oc-entity-handler-response.cc",
-				"src/structures/oc-header-option-array.cc",
 				"src/structures/oc-identity.cc",
 				"src/structures/oc-payload.cc",
-				"src/structures/oc-platform-info.cc"
+				"src/structures/oc-platform-info.cc",
+				"src/structures/oc-rep-payload/to-c.cc",
+				"src/structures/oc-rep-payload/to-js.cc"
 			],
-			"dependencies": [ "csdk", "generateconstants", "generateenums", "generatefunctions" ]
+			"include_dirs+": [ "<!@(node -p \"require('node-addon-api').include\")" ],
+			"dependencies": [
+				"csdk", "generateconstants", "generateenums", "generatefunctions",
+				"<!(node -p \"require('node-addon-api').gyp\")"
+			]
 		}
 	]
 }

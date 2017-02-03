@@ -14,17 +14,15 @@
  * limitations under the License.
  */
 
-#include <node_api.h>
-#include <stdio.h>
-#include "constants.h"
-#include "enums.h"
-#include "functions.h"
-#include "structures/handles.h"
+#ifndef _IOTIVITY_NODE_OC_REP_PAYLOAD_TO_C_H_
+#define _IOTIVITY_NODE_OC_REP_PAYLOAD_TO_C_H_
 
-void Init(napi_env env, napi_value exports, napi_value module, void *) {
-  HELPER_CALL(InitEnums(env, exports), THROW_BODY(env, ));
-  HELPER_CALL(InitConstants(env, exports), THROW_BODY(env, ));
-  HELPER_CALL(InitFunctions(env, exports), THROW_BODY(env, ));
+#include "../../common.h"
+extern "C" {
+#include <ocstack.h>
 }
 
-NAPI_MODULE(iotivity, Init)
+std::string c_OCRepPayload(napi_env env, napi_value source,
+                           OCRepPayload **destination);
+
+#endif /* ndef _IOTIVITY_NODE_OC_REP_PAYLOAD_TO_C_H_ */

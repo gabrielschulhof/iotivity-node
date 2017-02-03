@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 
-#ifndef __IOTIVITY_NODE_STRUCTURES_H__
-#define __IOTIVITY_NODE_STRUCTURES_H__
+#ifndef _IOTIVITY_NODE_OC_REP_PAYLOAD_TO_JS_H_
+#define _IOTIVITY_NODE_OC_REP_PAYLOAD_TO_JS_H_
 
-#include <v8.h>
-
+#include "../../common.h"
 extern "C" {
 #include <ocstack.h>
 }
 
-v8::Local<v8::Object> js_OCEntityHandlerRequest(
-    OCEntityHandlerRequest *request);
+std::string js_OCRepPayload(napi_env env, OCRepPayload *payload,
+                            napi_value destination);
 
-#endif /* __IOTIVITY_NODE_STRUCTURES_H__ */
+#endif /* ndef _IOTIVITY_NODE_OC_REP_PAYLOAD_TO_JS_H_ */
