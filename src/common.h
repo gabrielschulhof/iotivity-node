@@ -53,7 +53,7 @@
 #define NAPI_CALL(theCall, ...)                                        \
   do {                                                                 \
     napi_status status = theCall;                                      \
-    JS_ASSERT((status == napi_ok || status == napi_pending_exception), \
+    JS_ASSERT((status == napi_ok), \
               std::string(napi_get_last_error_info()->error_message),  \
               __VA_ARGS__);                                            \
   } while (0)
@@ -277,11 +277,7 @@
   do {                                                                       \
     int length;                                                              \
     NAPI_CALL_THROW((env), napi_get_cb_args_length((env), (info), &length)); \
-    if (length != (count)) {                                                 \
-      napi_throw_error(                                                      \
-          (env), LOCAL_MESSAGE("expected " #count " arguments").c_str());    \
-      return;                                                                \
-    }                                                                        \
+    JS_ASSERT((length == (count)), "expected " #count " arguments", THROW_BODY((env), )); \
   } while (0);                                                               \
   napi_value arguments[count];                                               \
   NAPI_CALL_THROW((env), napi_get_cb_args((env), (info), arguments, (count)));
