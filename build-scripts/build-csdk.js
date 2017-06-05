@@ -147,7 +147,10 @@ if ( !fs.existsSync( repoPaths.iotivity ) ) {
 		{ cwd: tinycborPath } );
 
 	// Build
-	run( "scons", [ "SECURED=1" ]
+	run( "scons", [
+			"SECURED=1",
+			"RD_MODE=none"
+		]
 		.concat( ( process.env.V === "1" || process.env.npm_config_verbose === "true" ) ?
 			[ "VERBOSE=True" ] : [] )
 		.concat( targetArch ?
