@@ -17,8 +17,10 @@
 #include <nan.h>
 #include <string>
 #include "../common.h"
+#include "../structures/handles.h"
 
 extern "C" {
+#include <ocprovisioningmanager.h>
 #include <ocstack.h>
 }
 
@@ -195,4 +197,81 @@ NAN_METHOD(bind_OCSetPropertyValue) {
                                Nan::To<String>(info[2]).ToLocalChecked()));
   }
   info.GetReturnValue().Set(Nan::New(returnValue));
+}
+
+NAN_METHOD(bind_OCDiscoverUnownedDevices) {
+  VALIDATE_ARGUMENT_COUNT(info, 2);
+  VALIDATE_ARGUMENT_TYPE(info, 0, IsUint32);
+  VALIDATE_ARGUMENT_TYPE(info, 1, IsArray);
+
+  Local<Array> jsArray = Local<Array>::Cast(info[1]);
+  uint32_t index;
+  OCProvisionDev_t *devices = 0, *device;
+  OCStackResult result =
+      OCDiscoverUnownedDevices(Nan::To<uint32_t>(info[0]).FromJust(), &devices);
+  if (result == OC_STACK_OK) {
+    for (device = devices, index = jsArray->Length(); device != 0;
+         device = device->next, index++) {
+      Nan::Set(jsArray, index, JSOCProvisionDev::New(device));
+    }
+  }
+  info.GetReturnValue().Set(Nan::New(result));
+}
+
+void default_OCProvisionResultCB(void *context, size_t resultCount,
+                                 OCProvisionResult_t *results, bool hasError) {
+  Nan::HandleScope scope;
+  Nan::Callback *jsCallback = (Nan::Callback *)context;
+  size_t index;
+  char uuid_string[37] = "";
+  Local<Array> jsResults = Nan::New<Array>(resultCount);
+  for (index = 0; index < resultCount; index++) {
+    Nan::HandleScope loopScope;
+    Local<Object> jsResult = Nan::New<Object>();
+    Nan::Set(jsResult, Nan::New("res").ToLocalChecked(),
+             Nan::New(results[index].res));
+    snprintf(
+        uuid_string, 37,
+        "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x",
+        results[index].deviceId.id[0], results[index].deviceId.id[1],
+        results[index].deviceId.id[2], results[index].deviceId.id[3],
+        results[index].deviceId.id[4], results[index].deviceId.id[5],
+        results[index].deviceId.id[6], results[index].deviceId.id[7],
+        results[index].deviceId.id[8], results[index].deviceId.id[9],
+        results[index].deviceId.id[10], results[index].deviceId.id[11],
+        results[index].deviceId.id[12], results[index].deviceId.id[13],
+        results[index].deviceId.id[14], results[index].deviceId.id[15]);
+    Nan::Set(jsResult, Nan::New("deviceId").ToLocalChecked(),
+             Nan::New(uuid_string).ToLocalChecked());
+    Nan::Set(jsResults, index, jsResult);
+  }
+  Local<Value> jsArgv[2] = {jsResults, Nan::New(hasError)};
+  jsCallback->Call(2, jsArgv);
+  delete jsCallback;
+}
+
+NAN_METHOD(bind_OCDoOwnershipTransfer) {
+  VALIDATE_ARGUMENT_COUNT(info, 2);
+  VALIDATE_ARGUMENT_TYPE(info, 0, IsArray);
+  VALIDATE_ARGUMENT_TYPE(info, 1, IsFunction);
+  OCProvisionDev_t *devices, **destination = &devices;
+
+  Local<Array> jsArray = Local<Array>::Cast(info[0]);
+  uint32_t length = jsArray->Length(), index;
+  for (index = 0; index < length;
+       index++, destination = &((*destination)->next)) {
+    (*destination) = JSOCProvisionDev::Resolve(
+        Local<Object>::Cast(Nan::Get(jsArray, index).ToLocalChecked()));
+    if (!(*destination)) {
+      return;
+    }
+  }
+
+  Nan::Callback *callback = new Nan::Callback(Local<Function>::Cast(info[1]));
+  OCStackResult result =
+      OCDoOwnershipTransfer(callback, devices, default_OCProvisionResultCB);
+  if (result != OC_STACK_OK) {
+    delete callback;
+  }
+  info.GetReturnValue().Set(Nan::New(result));
 }

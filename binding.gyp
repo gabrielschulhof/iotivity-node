@@ -35,7 +35,8 @@
 
 					[ "OS=='win'", {
 						"libraries": [
-							"<(module_root_dir)/iotivity-installed/lib/octbstack.lib"
+							"<(module_root_dir)/iotivity-installed/lib/octbstack.lib",
+							"<(module_root_dir)/iotivity-installed/lib/ocpmapi.lib"
 						]
 					}, {
 
@@ -43,7 +44,8 @@
 						"libraries": [
 							"-L<(module_root_dir)/iotivity-installed/lib",
 							"-Wl,-rpath <(module_root_dir)/iotivity-installed/lib",
-							"-loctbstack"
+							"-loctbstack",
+							"-locpmapi"
 						]
 					} ],
 
@@ -99,7 +101,8 @@
 							"copies": [ {
 								"destination": "<(PRODUCT_DIR)",
 								"files": [
-									"<(module_root_dir)/iotivity-installed/lib/octbstack.dll"
+									"<(module_root_dir)/iotivity-installed/lib/octbstack.dll",
+									"<(module_root_dir)/iotivity-installed/lib/ocpmapi.dll"
 								]
 							} ]
 						} ]

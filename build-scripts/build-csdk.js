@@ -50,7 +50,7 @@ function findBins( iotivityPath ) {
 }
 
 var binariesSource, installWinHeaders, tinycborPath, userAgentParts, platform, localArch,
-	targetArch, sysVersion, installBinaries, mbedtlsPath;
+	targetArch, sysVersion, installBinaries, mbedtlsPath, csdkPath;
 
 // Map npm arch to iotivity arch - different mapping in each OS, it seems :/
 // This can get complicated ...
@@ -82,6 +82,8 @@ var csdkRevision = process.env.CSDK_REVISION ||
 if ( fs.existsSync( repoPaths.installPrefix ) ) {
 	return;
 }
+
+csdkPath = path.join( repoPaths.iotivity, "resource", "csdk" );
 
 // Establish paths needed by the iotivity source tree
 mbedtlsPath = path.join( repoPaths.iotivity, "extlibs", "mbedtls", "mbedtls" );
@@ -161,7 +163,7 @@ if ( !fs.existsSync( repoPaths.iotivity ) ) {
 			[ "RELEASE=False", "LOGGING=False" ] : [] )
 		.concat(
 			[ "logger", "octbstack", "connectivity_abstraction", "coap", "c_common", "ocsrm",
-				"routingmanager", "json2cbor"
+				"routingmanager", "json2cbor", "ocpmapi"
 			] ), { cwd: repoPaths.iotivity } );
 }
 
@@ -182,16 +184,23 @@ shelljs.rm( "-rf", path.join( repoPaths.installLibraries, "resource" ) );
 
 // Install the headers
 shelljs.mkdir( "-p", repoPaths.installHeaders );
+
 shelljs.cp(
-	path.join( repoPaths.iotivity, "resource", "csdk", "stack", "include", "ocpayload.h" ),
-	path.join( repoPaths.iotivity, "resource", "csdk", "stack", "include", "ocpresence.h" ),
-	path.join( repoPaths.iotivity, "resource", "csdk", "stack", "include", "ocstackconfig.h" ),
-	path.join( repoPaths.iotivity, "resource", "csdk", "stack", "include", "ocstack.h" ),
-	path.join( repoPaths.iotivity, "resource", "csdk", "include", "octypes.h" ),
+	path.join( csdkPath, "stack", "include", "ocpayload.h" ),
+	path.join( csdkPath, "stack", "include", "ocpresence.h" ),
+	path.join( csdkPath, "stack", "include", "ocstackconfig.h" ),
+	path.join( csdkPath, "stack", "include", "ocstack.h" ),
+	path.join( csdkPath, "include", "octypes.h" ),
 	path.join( repoPaths.iotivity, "resource", "c_common", "iotivity_config.h" ),
 	path.join( repoPaths.iotivity, "resource", "c_common", "platform_features.h" ),
 	path.join( repoPaths.iotivity, "extlibs", "tinycbor", "tinycbor", "src", "cbor.h" ),
-	repoPaths.installHeaders );
+	path.join( csdkPath, "security", "provisioning", "include", "ocprovisioningmanager.h" ),
+	path.join( csdkPath, "security", "provisioning", "include", "internal",
+		"ownershiptransfermanager.h" ),
+	path.join( csdkPath, "security", "provisioning", "include", "pmtypes.h" ),
+	path.join( csdkPath, "security", "include", "securevirtualresourcetypes.h" ),
+	repoPaths.installHeaders
+);
 
 if ( process.platform.match( /^win/ ) ) {
 	installWinHeaders = path.join( repoPaths.installHeaders, "windows" );

@@ -18,8 +18,12 @@ var intervalId,
 
 console.log( "Starting OCF stack in server mode" );
 
+iotivity.OCRegisterPersistentStorageHandler( new require( "../lib/StorageHandler" )() );
+
 // Start iotivity and set up the processing loop
-iotivity.OCInit( null, 0, iotivity.OCMode.OC_SERVER );
+iotivity.OCInit( null, 0, iotivity.OCMode.OC_CLIENT_SERVER );
+
+console.log( "Local device ID: " + iotivity.OCGetServerInstanceIDString() );
 
 intervalId = setInterval( function() {
 	iotivity.OCProcess();

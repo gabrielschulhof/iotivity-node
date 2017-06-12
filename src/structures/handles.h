@@ -20,6 +20,7 @@
 #include <nan.h>
 #include <map>
 extern "C" {
+#include <ocprovisioningmanager.h>
 #include <ocstack.h>
 }
 
@@ -73,6 +74,11 @@ class JSHandle {
 class JSOCRequestHandle : public JSHandle<JSOCRequestHandle, OCRequestHandle> {
  public:
   static const char *jsClassName() { return "OCRequestHandle"; }
+};
+
+class JSOCProvisionDev : public JSHandle<JSOCProvisionDev, OCProvisionDev_t *> {
+ public:
+  static const char *jsClassName() { return "OCProvisionDev"; }
 };
 
 template <typename handleType>
