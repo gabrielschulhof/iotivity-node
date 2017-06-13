@@ -16,6 +16,14 @@
 
 module.exports = function( testFile, resourceUuid, location, noClobber ) {
 
+// Create two ACEs from the given resources - one for plain text and one for encrypted
+function generateACEList( resources ) {
+	return [
+		{ subject: { "conntype": "anon-clear" }, resources: resources, "permission": 31 },
+		{ subject: { "conntype": "auth-crypt" }, resources: resources, "permission": 31 }
+	];
+}
+
 var _ = {
 	mergeWith: require( "lodash.mergewith" ),
 	extend: require( "lodash.assignin" )
@@ -49,55 +57,33 @@ configuration = _.mergeWith( {},
 
 	// Special href containing the resource uuid
 	{
-		acl: { aclist: { aces: [
-			{
-				subjectuuid: "*",
-				permission: 31,
-				resources: typeof resourceUuid === "string" ? [
+		acl: {
+			aclist2: generateACEList( typeof resourceUuid === "string" ? [
 
-					// Resource names used during testing
-					// 1. iotivity-node
-					{
-						href: "/a/" + resourceUuid + "-xyzzy",
-						rel: "",
-						rt: [ "core.light" ],
-						"if": [ "oic.if.baseline" ]
-					},
+				// Resource names used during testing
+				// 1. iotivity-node
+				{
+					href: "/a/" + resourceUuid + "-xyzzy"
+				},
 
-					// 2. iot-js-api
-					{
-						href: "/a/" + resourceUuid,
-						rel: "",
-						rt: [ "core.light" ],
-						"if": [ "oic.if.baseline" ]
-					},
-					{
-						href: "/direct",
-						rel: "",
-						rt: [ "core.light" ],
-						"if": [ "oic.if.baseline" ]
-					},
-					{
-						href: "/target-resource",
-						rel: "",
-						rt: [ "core.light" ],
-						"if": [ "oic.if.baseline" ]
-					},
-					{
-						href: "/disable-presence",
-						rel: "",
-						rt: [ "core.light" ],
-						"if": [ "oic.if.baseline" ]
-					},
-					{
-						href: "/some/new/resource",
-						rel: "",
-						rt: [ "core.light" ],
-						"if": [ "oic.if.baseline" ]
-					}
-				] : resourceUuid
-			}
-		] } }
+				// 2. iot-js-api
+				{
+					href: "/a/" + resourceUuid
+				},
+				{
+					href: "/direct"
+				},
+				{
+					href: "/target-resource"
+				},
+				{
+					href: "/disable-presence"
+				},
+				{
+					href: "/some/new/resource"
+				}
+			] : resourceUuid )
+		}
 	},
 
 	// Per-test configuration (if any)
@@ -125,6 +111,10 @@ configuration = _.mergeWith( {},
 			return objectValue.concat( sourceValue );
 		}
 	} );
+
+configuration.acl.aclist2 = configuration.acl.aclist2.map( function( value, index ) {
+	return _.extend( value, { aceid: index + 1 } );
+} );
 
 toolPath = path.join( installPrefix, "bin" );
 
