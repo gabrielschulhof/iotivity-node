@@ -75,6 +75,7 @@ var allowedStructure = {
 		"lodash.remove": "required",
 		"lodash.uniq": "required",
 		"lodash.without": "required",
+		"node-addon-api": "required",
 		"osenv": "required",
 		"sha.js": "required",
 		"shelljs": "required"
