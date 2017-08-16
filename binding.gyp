@@ -212,6 +212,7 @@
 				"src/structures/oc-identity.cc",
 				"src/structures/oc-payload.cc"
 			],
+			"type": "shared_library",
 			"dependencies": [ "csdk", "generateconstants", "generateenums", "generatefunctions" ]
 		}
 	]
