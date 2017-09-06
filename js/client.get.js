@@ -16,13 +16,23 @@ var intervalId,
 	handleReceptacle = {},
 
 	// This is the same value as server.get.js
-	sampleUri = "/a/iotivity-node-get-sample",
+	sampleUri = "/a/high-level-example",
 	iotivity = require( "iotivity-node/lowlevel" );
 
 console.log( "Starting OCF stack in client mode" );
 
+var path = require( "path" );
+require( "../tests/preamble" )( __filename, [ {
+	href: sampleUri,
+	rel: "",
+	rt: [ "core.fan" ],
+	"if": [ iotivity.OC_RSRVD_INTERFACE_DEFAULT ]
+} ], path.resolve( path.join( __dirname, ".." ) ) );
+
+iotivity.OCRegisterPersistentStorageHandler( require( "../lib/StorageHandler" )() );
+
 // Start iotivity and set up the processing loop
-iotivity.OCInit( null, 0, iotivity.OCMode.OC_CLIENT );
+iotivity.OCInit( null, 0, iotivity.OCMode.OC_CLIENT_SERVER );
 
 intervalId = setInterval( function() {
 	iotivity.OCProcess();
@@ -30,63 +40,20 @@ intervalId = setInterval( function() {
 
 console.log( "Issuing discovery request" );
 
-// Discover resources and list them
 iotivity.OCDoResource(
-
-	// The bindings fill in this object
-	handleReceptacle,
-
-	iotivity.OCMethod.OC_REST_DISCOVER,
-
-	// Standard path for discovering resources
-	iotivity.OC_MULTICAST_DISCOVERY_URI,
-
-	// There is no destination
+	{},
+	iotivity.OCMethod.OC_REST_GET,
+	"coaps://192.168.1.34:52183/" + sampleUri,
 	null,
-
-	// There is no payload
-	null,
+	{
+		type: iotivity.OCPayloadType.PAYLOAD_TYPE_REPRESENTATION,
+		values: {
+			question: "How many angels can dance on the head of a pin?"
+		}
+	},
 	iotivity.OCConnectivityType.CT_DEFAULT,
 	iotivity.OCQualityOfService.OC_HIGH_QOS,
-	function( handle, response ) {
-		console.log( "Received response to DISCOVER request:" );
-		console.log( JSON.stringify( response, null, 4 ) );
-		var index,
-			destination = response.addr,
-			getHandleReceptacle = {},
-			resources = response && response.payload && response.payload.resources,
-			resourceCount = resources ? resources.length : 0,
-			getResponseHandler = function( handle, response ) {
-				console.log( "Received response to GET request:" );
-				console.log( JSON.stringify( response, null, 4 ) );
-				return iotivity.OCStackApplicationResult.OC_STACK_DELETE_TRANSACTION;
-			};
-
-		// If the sample URI is among the resources, issue the GET request to it
-		for ( index = 0; index < resourceCount; index++ ) {
-			if ( resources[ index ].uri === sampleUri ) {
-				iotivity.OCDoResource(
-					getHandleReceptacle,
-					iotivity.OCMethod.OC_REST_GET,
-					sampleUri,
-					destination,
-					{
-						type: iotivity.OCPayloadType.PAYLOAD_TYPE_REPRESENTATION,
-						values: {
-							question: "How many angels can dance on the head of a pin?"
-						}
-					},
-					iotivity.OCConnectivityType.CT_DEFAULT,
-					iotivity.OCQualityOfService.OC_HIGH_QOS,
-					getResponseHandler,
-					null );
-			}
-		}
-
-		return iotivity.OCStackApplicationResult.OC_STACK_KEEP_TRANSACTION;
-	},
-
-	// There are no header options
+	function() { console.log( JSON.stringify( arguments, null, 4 ) ); },
 	null );
 
 // Exit gracefully when interrupted

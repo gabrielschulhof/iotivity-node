@@ -1,4 +1,3 @@
-// Copyright 2016 Intel Corporation
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -7,6 +6,7 @@
 //     http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
+// Copyright 2016 Intel Corporation
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
@@ -20,6 +20,16 @@ var intervalId,
 	iotivity = require( "iotivity-node/lowlevel" );
 
 console.log( "Starting OCF stack in server mode" );
+
+var path = require( "path" );
+require( "../tests/preamble" )( __filename, [ {
+	href: "/a/iotivity-node-get-example",
+	rel: "",
+	rt: [ "core.fan" ],
+	"if": [ iotivity.OC_RSRVD_INTERFACE_DEFAULT ]
+} ], path.resolve( path.join( __dirname, ".." ) ) );
+
+iotivity.OCRegisterPersistentStorageHandler( require( "../lib/StorageHandler" )() );
 
 // Start iotivity and set up the processing loop
 iotivity.OCInit( null, 0, iotivity.OCMode.OC_SERVER );

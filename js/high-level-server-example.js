@@ -89,6 +89,7 @@ if ( device.device.uuid ) {
 		interfaces: [ "oic.if.baseline" ],
 		discoverable: true,
 		observable: true,
+		secure: true,
 		properties: { someValue: 0, someOtherValue: "Helsinki" }
 	} ).then(
 		function( resource ) {
