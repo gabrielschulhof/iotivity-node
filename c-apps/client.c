@@ -1,9 +1,11 @@
-#include <glib.h>
+#include <string.h>
+#include <stdlib.h>
 #include <ocstack.h>
+#include "boilerplate.h"
 
-#define DESIRED_RESOURCE "/a/client-test"
+#define DESIRED_RESOURCE "/a/high-level-example"
 
-static OCDevAddr desiredLocation;
+static char *desiredUrl = NULL;
 
 static OCStackApplicationResult
 requestCallback(void *NOTHING, OCDoHandle handle, OCClientResponse *response) {
@@ -11,18 +13,18 @@ requestCallback(void *NOTHING, OCDoHandle handle, OCClientResponse *response) {
 	return OC_STACK_KEEP_TRANSACTION;
 }
 
-static gboolean
-performRequest(gpointer NOTHING) {
+static void
+performRequest() {
 	OCDoHandle handle = NULL;
 	OCCallbackData callback = {
 		.context = NULL,
 		.cb = requestCallback,
 		.cd = NULL,
 	};
-	printf("OCDoResource(request): %d\n",
-		OCDoResource(&handle, OC_REST_OBSERVE, DESIRED_RESOURCE, &desiredLocation,
+	printf("OCDoResource(request) to %s: %d\n", desiredUrl,
+		OCDoResource(&handle, OC_REST_GET, desiredUrl, NULL,
 			NULL, CT_DEFAULT, OC_HIGH_QOS, &callback, NULL, 0));
-	return false;
+	free(desiredUrl);
 }
 
 static OCStackApplicationResult
@@ -32,10 +34,30 @@ discoverCallback(void *NOTHING, OCDoHandle handle, OCClientResponse *response) {
 			response->payload->type == PAYLOAD_TYPE_DISCOVERY) {
 		for (resource = ((OCDiscoveryPayload *)(response->payload))->resources;
 				resource; resource = resource->next) {
-			if (resource->uri && !g_strcmp0(resource->uri, DESIRED_RESOURCE)) {
-				desiredLocation = response->devAddr;
+			if (resource->uri && !strcmp(resource->uri, DESIRED_RESOURCE)) {
+				for (OCEndpointPayload *ep = resource->eps; ep; ep = ep->next) {
+					if (!desiredUrl && !strcmp(ep->tps, "coaps")) {
+						char *percent = strstr(ep->addr, "%");
+						if (percent) {
+							*percent = 0;
+						}
+						desiredUrl = strdup_printf("%s://%s%s%s:%d%s",
+							ep->tps,
+							(ep->family & OC_IP_USE_V6 ? "[" : ""),
+							ep->addr,
+							(ep->family & OC_IP_USE_V6 ? "]" : ""),
+							ep->port,
+							DESIRED_RESOURCE);
+					}
+					printf("Resource endpoint: %s://%s%s%s:%d\n",
+						ep->tps,
+						(ep->family & OC_IP_USE_V6 ? "[" : ""),
+						ep->addr,
+						(ep->family & OC_IP_USE_V6 ? "]" : ""),
+						ep->port);
+				}
 				printf("Resource found\n");
-				g_idle_add(performRequest, NULL);
+				performRequest();
 				return OC_STACK_DELETE_TRANSACTION;
 			}
 		}
@@ -43,8 +65,7 @@ discoverCallback(void *NOTHING, OCDoHandle handle, OCClientResponse *response) {
 	return OC_STACK_KEEP_TRANSACTION;
 }
 
-static gboolean
-discoverResource(gpointer NOTHING) {
+void doIoT() {
 	OCDoHandle handle = NULL;
 	OCCallbackData callback = {
 		.context = NULL,
@@ -54,14 +75,9 @@ discoverResource(gpointer NOTHING) {
 	printf("OCDoResource(discovery): %d\n",
 		OCDoResource(&handle, OC_REST_DISCOVER, OC_MULTICAST_DISCOVERY_URI,
 			NULL, NULL, CT_DEFAULT, OC_HIGH_QOS, &callback, NULL, 0));
-	return false;
 }
 
-void doIoT() {
-	g_idle_add(discoverResource, NULL);
-}
-
-char *processFileName(const char *filename, gboolean *needFree) {
+char *processFileName(const char *filename, bool *needFree) {
 	*needFree = true;
-	return g_strdup_printf("client.%s", filename);
+	return strdup_printf("client.%s", filename);
 }

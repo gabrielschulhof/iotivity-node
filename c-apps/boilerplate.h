@@ -2,6 +2,7 @@
 #define __BOILERPLATE_H__
 
 void doIoT();
-char *processFileName(const char *filename, gboolean *needsFree);
+char *strdup_printf(char *format, ...);
+char *processFileName(const char *filename, bool *needsFree);
 
 #endif /* ndef __BOILERPLATE_H__ */

@@ -213,6 +213,18 @@
 				"src/structures/oc-payload.cc"
 			],
 			"dependencies": [ "csdk", "generateconstants", "generateenums", "generatefunctions" ]
+		},
+		{
+			"target_name": "c-client",
+			"type": "executable",
+			"sources": [ "c-apps/client.c", "c-apps/boilerplate.c" ],
+			"dependencies": [ "csdk" ]
+		},
+		{
+			"target_name": "c-server",
+			"type": "executable",
+			"sources": [ "c-apps/server.c", "c-apps/boilerplate.c" ],
+			"dependencies": [ "csdk" ]
 		}
 	]
 }

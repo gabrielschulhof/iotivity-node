@@ -1,41 +1,55 @@
-#include <glib.h>
+#include <stdarg.h>
+#include <string.h>
 #include <ocstack.h>
-#include <unistd.h>
+#include <stdlib.h>
 #include "boilerplate.h"
 
-static gboolean
-do_OCProcess(gpointer NOTHING) {
-	OCStackResult result = OCProcess();
-	if (result != OC_STACK_OK) {
-		printf("OCProcess: %d\n", result);
-	}
-	return true;
-}
+#ifdef __unix__
+# include <unistd.h>
+#elif defined _WIN32
+# include <windows.h>
+#define sleep(x) Sleep(1000 * x)
+#endif
 
 static FILE *my_open(const char *filename, const char *mode) {
-	gboolean needFree = FALSE;
+	bool needFree = false;
 	char *processedFileName = processFileName(filename, &needFree);
 	FILE *returnValue = fopen(processedFileName, mode);
 	if (needFree) {
-		g_free(processedFileName);
+		free(processedFileName);
 	}
 	return returnValue;
 }
 
 static int my_unlink(const char *filename) {
-	gboolean needFree = FALSE;
+	bool needFree = false;
 	char *processedFileName = processFileName(filename, &needFree);
 	int returnValue = unlink(processedFileName);
 	if (needFree) {
-		g_free(processedFileName);
+		free(processedFileName);
 	}
 	return returnValue;
 }
 
+char *strdup_printf(char *format, ...) {
+	char *return_value = NULL;
+	va_list list;
+	int size;
+
+	va_start(list, format);
+	size = vsnprintf(NULL, 0, format, list);
+	va_end(list);
+	return_value = malloc(size + 1);
+	va_start(list, format);
+	vsnprintf(return_value, size + 1, format, list);
+	va_end(list);
+	return_value[size] = 0;
+
+	return return_value;
+}
+
 int
 main(int argc, char **argv) {
-	GMainLoop *loop = g_main_loop_new(NULL, FALSE);
-
 	OCPersistentStorage storage = {
 		.open = my_open,
 		.read = fread,
@@ -50,10 +64,15 @@ main(int argc, char **argv) {
 	printf("OCInit: %d\n",
 		OCInit(NULL, 0, OC_CLIENT_SERVER));
 
-	g_timeout_add(100, do_OCProcess, NULL);
-
 	doIoT();
 
-	g_main_loop_run(loop);
+	while (true) {
+		OCStackResult result = OCProcess();
+		if (result != OC_STACK_OK) {
+			printf("OCProcess: %d\n", result);
+		}
+		sleep(1);
+	}
+
 	return 0;
 }
