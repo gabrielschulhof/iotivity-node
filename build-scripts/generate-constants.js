@@ -87,4 +87,12 @@ fs.writeFileSync( constantsCC,
 	parseFileForConstants( includePaths[ "octypes.h" ] ),
 	{ flag: "a" } );
 
+	fs.writeFileSync( constantsCC,
+		"  // ocrandom.h: Definitions\n",
+		{ flag: "a" } );
+
+	fs.writeFileSync( constantsCC,
+		parseFileForConstants( includePaths[ "ocrandom.h" ] ),
+		{ flag: "a" } );
+
 fs.writeFileSync( constantsCC, "}\n", { flag: "a" } );

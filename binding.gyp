@@ -197,6 +197,7 @@
 				"src/common.cc",
 				"src/functions/oc-create-delete-resource.cc",
 				"src/functions/oc-do-resource.cc",
+				"src/functions/oc-random.cc",
 				"src/functions/oc-register-persistent-storage-handler.cc",
 				"src/functions/oc-set-default-device-entity-handler.cc",
 				"src/functions/oc-server-resource-utils.cc",

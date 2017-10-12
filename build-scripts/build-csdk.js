@@ -227,6 +227,7 @@ shelljs.cp(
 	path.join( repoPaths.iotivity, "resource", "c_common", "byte_array.h" ),
 	path.join( repoPaths.iotivity, "resource", "c_common", "iotivity_config.h" ),
 	path.join( repoPaths.iotivity, "resource", "c_common", "platform_features.h" ),
+	path.join( repoPaths.iotivity, "resource", "c_common", "ocrandom", "include", "ocrandom.h" ),
 	path.join( repoPaths.iotivity, "extlibs", "tinycbor", "tinycbor", "src", "cbor.h" ),
 	repoPaths.installHeaders );
 
