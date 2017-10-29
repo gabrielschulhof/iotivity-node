@@ -87,4 +87,8 @@ fs.writeFileSync( constantsCC,
 	parseFileForConstants( includePaths[ "octypes.h" ] ),
 	{ flag: "a" } );
 
+fs.writeFileSync( constantsCC,
+	parseFileForConstants( includePaths[ "pinoxmcommon.h" ] ),
+	{ flag: "a" } );
+
 fs.writeFileSync( constantsCC, "}\n", { flag: "a" } );

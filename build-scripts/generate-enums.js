@@ -92,6 +92,8 @@ fs.writeFileSync( enumsCC, [
 		"NAN_MODULE_INIT(InitEnums) {",
 		parseFileForEnums( enumsCC, includePaths[ "octypes.h" ] ),
 		parseFileForEnums( enumsCC, includePaths[ "ocpresence.h" ] ),
+		parseFileForEnums( enumsCC, includePaths[ "pinoxmcommon.h" ] ),
+		parseFileForEnums( enumsCC, includePaths[ "casecurityinterface.h" ] ),
 		"}"
 	].join( "\n" ) + "\n",
 	{ flag: "a" } );

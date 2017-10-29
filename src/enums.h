@@ -21,6 +21,7 @@
 
 extern "C" {
 #include <ocstack.h>
+#include <pinoxmcommon.h>
 }
 
 void InitEnums(v8::Handle<v8::Object> exports);
