@@ -62,10 +62,10 @@ ocf.server
     interfaces: [ "oic.if.baseline" ],
     discoverable: true,
     observable: true,
-    secure: true
+    secure: false
   } )
   .then( function( resource ) {
-    console.log( "Resource registered" );
+    console.log( "Resource registered: " + JSON.stringify( resource, null, 4 ) );
     observationWrapper = ObservationWrapper( resource );
     resource
       .onretrieve( function( request ) {
