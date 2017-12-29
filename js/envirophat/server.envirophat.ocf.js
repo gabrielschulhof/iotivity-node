@@ -166,11 +166,11 @@ function main( ) {
 	iotivity.OCSetPropertyValue( iotivity.OCPayloadType.PAYLOAD_TYPE_DEVICE,
 		iotivity.OC_RSRVD_SPEC_VERSION, "res.1.1.0" );
 	iotivity.OCSetPropertyValue( iotivity.OCPayloadType.PAYLOAD_TYPE_DEVICE,
-		csdk.OC_RSRVD_DATA_MODEL_VERSION, "abc.0.0.1" ].join( "," ) );
+		iotivity.OC_RSRVD_DATA_MODEL_VERSION, "abc.0.0.1" );
 	iotivity.OCSetPropertyValue( iotivity.OCPayloadType.PAYLOAD_TYPE_DEVICE,
-		csdk.OC_RSRVD_DEVICE_NAME, "server.post" );
+		iotivity.OC_RSRVD_DEVICE_NAME, "server.post" );
 	iotivity.OCSetPropertyValue( iotivity.OCPayloadType.PAYLOAD_TYPE_PLATFORM,
-		csdk.OC_RSRVD_MFG_NAME, "iotivity-node" );
+		iotivity.OC_RSRVD_MFG_NAME, "iotivity-node" );
 
 	console.log( "[ main ]: creating resources" );
 	createResources( );
