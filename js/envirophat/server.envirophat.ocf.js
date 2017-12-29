@@ -30,16 +30,7 @@ var envirophat = {
 	weather: { temperature: 0 },
 	leds: { status: null }
 };
-var deviceInfo = {
-	specVersion: "res.1.1.0",
-	dataModelVersions: [ "abc.0.0.1" ],
-	deviceName: "server.post",
-	types: [ ]
-};
-var platformInfo = {
-	platformID: "server.post.sample",
-	manufacturerName: "iotivity-node"
-};
+
 process.on( "SIGINT", iotStop );
 
 function CaptureOutput( error, data ) {
@@ -171,9 +162,15 @@ function main( ) {
 	console.log( "[ main ]: Starting OCF stack in server mode" );
 	iotivity.OCInit( null, 0, iotivity.OCMode.OC_SERVER );
 
-	console.log( "[ main ]: Registerign device and platform information" );
-	iotivity.OCSetDeviceInfo( deviceInfo );
-	iotivity.OCSetPlatformInfo( platformInfo );
+	console.log( "[ main ]: Registering device and platform information" );
+	iotivity.OCSetPropertyValue( iotivity.OCPayloadType.PAYLOAD_TYPE_DEVICE,
+		iotivity.OC_RSRVD_SPEC_VERSION, "res.1.1.0" );
+	iotivity.OCSetPropertyValue( iotivity.OCPayloadType.PAYLOAD_TYPE_DEVICE,
+		csdk.OC_RSRVD_DATA_MODEL_VERSION, "abc.0.0.1" ].join( "," ) );
+	iotivity.OCSetPropertyValue( iotivity.OCPayloadType.PAYLOAD_TYPE_DEVICE,
+		csdk.OC_RSRVD_DEVICE_NAME, "server.post" );
+	iotivity.OCSetPropertyValue( iotivity.OCPayloadType.PAYLOAD_TYPE_PLATFORM,
+		csdk.OC_RSRVD_MFG_NAME, "iotivity-node" );
 
 	console.log( "[ main ]: creating resources" );
 	createResources( );
