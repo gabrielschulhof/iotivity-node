@@ -67,6 +67,8 @@
         cd ~/workspace/iotivity-node/js/envirophat
         node server.envirophat.ocf.js
         ```
+     1. Set up access control for the server using the
+        [instructions](../README.md) for the COAPS client/server pair.
      1. Open another terminal window to run the client:
         ```
         cd ~/workspace/iotivity-node/js/envirophat
