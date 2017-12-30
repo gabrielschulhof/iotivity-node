@@ -6,8 +6,9 @@ The files `high-level-client.coaps.js` and `high-level-server.coaps.js` are for
 a client/server pair illustrating DTLS access to a resource. To run the example,
 please follow the steps below:
 
-0. In addition to `iotivity-node`, build `iotivity` with `SECURED=1` and
-    `RD_MODE=all`. Let the root of the `iotivity` repository be `$iotivityRoot`.
+0. In addition to `iotivity-node`, [build](https://wiki.iotivity.org/build)
+    `iotivity` with `SECURED=1` and `RD_MODE=all`. Let the root of the
+    `iotivity` repository be `$iotivityRoot`.
 
 0. Calculate the sha256 sum of the server. The example below assumes the server
     is located in `/home/user/iotivity-node/js/high-level-server.coaps.js`.
