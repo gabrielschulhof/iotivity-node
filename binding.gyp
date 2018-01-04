@@ -43,7 +43,8 @@
 						"libraries": [
 							"-L<(module_root_dir)/iotivity-installed/lib",
 							"-Wl,-rpath <(module_root_dir)/iotivity-installed/lib",
-							"-loctbstack"
+							"-loctbstack",
+							"-lresource_directory"
 						]
 					} ],
 
@@ -100,6 +101,11 @@
 								"destination": "<(PRODUCT_DIR)",
 								"files": [
 									"<(module_root_dir)/iotivity-installed/lib/octbstack.dll"
+								]
+							}, {
+								"destination": "<(PRODUCT_DIR)",
+								"files": [
+									"<(module_root_dir)/iotivity-installed/lib/resource_directory.dll"
 								]
 							} ]
 						} ]

@@ -75,19 +75,23 @@ fs.writeFileSync( constantsCC,
 fs.writeFileSync( constantsCC,
 	"  // ocstackconfig.h: Stack configuration\n",
 	{ flag: "a" } );
-
 fs.writeFileSync( constantsCC,
 	parseFileForConstants( includePaths[ "ocstackconfig.h" ] ),
 	{ flag: "a" } );
-
 fs.writeFileSync( constantsCC, "\n", { flag: "a" } );
 
 fs.writeFileSync( constantsCC,
-	"  // octypes.h: Definitions\n",
+	"  // octypes.h: Type definitions\n",
 	{ flag: "a" } );
-
 fs.writeFileSync( constantsCC,
 	parseFileForConstants( includePaths[ "octypes.h" ] ),
 	{ flag: "a" } );
+fs.writeFileSync( constantsCC, "\n", { flag: "a" } );
 
+fs.writeFileSync( constantsCC,
+	"  // rd_client.h: Resource directory client\n",
+	{ flag: "a" } );
+fs.writeFileSync( constantsCC,
+	parseFileForConstants( includePaths[ "rd_client.h" ] ),
+	{ flag: "a" } );
 fs.writeFileSync( constantsCC, "}\n", { flag: "a" } );
