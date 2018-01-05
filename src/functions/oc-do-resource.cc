@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+#include <vector>
+
 #include "../common.h"
 #include "../structures/handles.h"
 #include "../structures/oc-client-response.h"
@@ -63,7 +65,7 @@ NAN_METHOD(bind_OCDoResource) {
 
   OCDevAddr *destination = 0, destinationToFillIn;
   OCPayload *payload = 0;
-  OCHeaderOption *options = 0;
+  std::vector<OCHeaderOption> options;
   uint8_t optionCount = 0;
   OCCallbackData data;
 
@@ -72,14 +74,8 @@ NAN_METHOD(bind_OCDoResource) {
     size_t length = optionArray->Length();
 
     if (length > 0) {
-      options = (OCHeaderOption *)malloc(length * sizeof(OCHeaderOption));
-      if (!options) {
-        Nan::ThrowError(
-            "Ran out of memory attempting to allocate header options");
-        return;
-      }
-      if (!c_OCHeaderOption(optionArray, options, &optionCount)) {
-        free(options);
+      options.resize(length);
+      if (!c_OCHeaderOption(optionArray, options.data(), &optionCount)) {
         return;
       }
     }
@@ -92,7 +88,6 @@ NAN_METHOD(bind_OCDoResource) {
                     &destinationToFillIn)) {
       destination = &destinationToFillIn;
     } else {
-      free(options);
       return;
     }
   }
@@ -101,7 +96,6 @@ NAN_METHOD(bind_OCDoResource) {
   // OCPayload*
   if (info[4]->IsObject()) {
     if (!c_OCPayload(Nan::To<Object>(info[4]).ToLocalChecked(), &payload)) {
-      free(options);
       return;
     }
   }
@@ -109,7 +103,6 @@ NAN_METHOD(bind_OCDoResource) {
   CallbackInfo<OCDoHandle> *callbackInfo = new CallbackInfo<OCDoHandle>;
   if (!callbackInfo) {
     Nan::ThrowError("OCDoResource: Failed to allocate callback info");
-    free(options);
     return;
   }
 
@@ -121,10 +114,8 @@ NAN_METHOD(bind_OCDoResource) {
       &(callbackInfo->handle), (OCMethod)Nan::To<uint32_t>(info[1]).FromJust(),
       (const char *)*String::Utf8Value(info[2]), destination, payload,
       (OCConnectivityType)Nan::To<uint32_t>(info[5]).FromJust(),
-      (OCQualityOfService)Nan::To<uint32_t>(info[6]).FromJust(), &data, options,
-      (uint8_t)Nan::To<uint32_t>(info[9]).FromJust());
-
-  free(options);
+      (OCQualityOfService)Nan::To<uint32_t>(info[6]).FromJust(), &data,
+      options.data(), (uint8_t)Nan::To<uint32_t>(info[9]).FromJust());
 
   // We need not free the payload because it seems iotivity takes ownership.
   // Similarly, if OCDoResource() fails, iotivity calls the callback that frees
