@@ -51,6 +51,31 @@ static OCStackApplicationResult defaultOCClientResponseHandler(
       Nan::New(callbackInfo->jsHandle), js_OCClientResponse(clientResponse));
 }
 
+#define OC_DO_CALL(prefix, jsCallback, doCall) \
+do { \
+  OCCallbackData callbackData; \
+  CallbackInfo<OCDoHandle> *callbackInfo = new CallbackInfo<OCDoHandle>; \
+  if (!callbackInfo) { \
+    Nan::ThrowError(#prefix ": Failed to allocate callback info"); \
+    return; \
+  } \
+ \
+  callbackData.context = (void *)callbackInfo; \
+  callbackData.cb = defaultOCClientResponseHandler; \
+  callbackData.cd = (OCClientContextDeleter)deleteNanCallback; \
+ \
+  OCStackResult returnValue = doCall; \
+ \
+  if (returnValue == OC_STACK_OK) { \
+    Nan::Set(Nan::To<Object>(info[0]).ToLocalChecked(), \
+             Nan::New("handle").ToLocalChecked(), \
+             callbackInfo->Init(JSOCDoHandle::New(callbackInfo), \
+                                Local<Function>::Cast((jsCallback)))); \
+  } \
+ \
+  info.GetReturnValue().Set(Nan::New(returnValue)); \
+} while (0)
+
 NAN_METHOD(bind_OCDoResource) {
   VALIDATE_ARGUMENT_COUNT(info, 8);
   VALIDATE_ARGUMENT_TYPE(info, 0, IsObject);
@@ -100,35 +125,18 @@ NAN_METHOD(bind_OCDoResource) {
     }
   }
 
-  CallbackInfo<OCDoHandle> *callbackInfo = new CallbackInfo<OCDoHandle>;
-  if (!callbackInfo) {
-    Nan::ThrowError("OCDoResource: Failed to allocate callback info");
-    return;
-  }
+  // We need not free the payload after the call because it seems iotivity takes
+  // ownership. Similarly, if OCDoResource() fails, iotivity calls the callback
+  // that frees the data on our behalf.
 
-  data.context = (void *)callbackInfo;
-  data.cb = defaultOCClientResponseHandler;
-  data.cd = (OCClientContextDeleter)deleteNanCallback;
-
-  OCStackResult returnValue = OCDoResource(
-      &(callbackInfo->handle), (OCMethod)Nan::To<uint32_t>(info[1]).FromJust(),
-      (const char *)*String::Utf8Value(info[2]), destination, payload,
+  OC_DO_CALL(OCDoResource, info[7], OCDoResource(&(callbackInfo->handle),
+      (OCMethod)Nan::To<uint32_t>(info[1]).FromJust(),
+      (const char *)*String::Utf8Value(info[2]),
+      destination, payload,
       (OCConnectivityType)Nan::To<uint32_t>(info[5]).FromJust(),
-      (OCQualityOfService)Nan::To<uint32_t>(info[6]).FromJust(), &data,
-      options.data(), (uint8_t)Nan::To<uint32_t>(info[9]).FromJust());
-
-  // We need not free the payload because it seems iotivity takes ownership.
-  // Similarly, if OCDoResource() fails, iotivity calls the callback that frees
-  // the data on our behalf.
-
-  if (returnValue == OC_STACK_OK) {
-    Nan::Set(Nan::To<Object>(info[0]).ToLocalChecked(),
-             Nan::New("handle").ToLocalChecked(),
-             callbackInfo->Init(JSOCDoHandle::New(callbackInfo),
-                                Local<Function>::Cast(info[7])));
-  }
-
-  info.GetReturnValue().Set(Nan::New(returnValue));
+      (OCQualityOfService)Nan::To<uint32_t>(info[6]).FromJust(),
+      &callbackData, options.data(),
+      (uint8_t)Nan::To<uint32_t>(info[9]).FromJust()));
 }
 
 NAN_METHOD(bind_OCCancel) {
