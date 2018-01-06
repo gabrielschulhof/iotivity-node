@@ -15,6 +15,7 @@
  */
 
 #include <vector>
+#include <string>
 
 #include "../common.h"
 #include "../structures/handles.h"
@@ -27,6 +28,7 @@ extern "C" {
 #include <ocpayload.h>
 #include <ocstack.h>
 #include <stdlib.h>
+#include <stdint.h>
 }
 
 using namespace v8;
@@ -137,6 +139,60 @@ NAN_METHOD(bind_OCDoResource) {
       (OCQualityOfService)Nan::To<uint32_t>(info[6]).FromJust(),
       &callbackData, options.data(),
       (uint8_t)Nan::To<uint32_t>(info[9]).FromJust()));
+}
+
+NAN_METHOD(bind_OCRDDiscover) {
+  VALIDATE_ARGUMENT_COUNT(info, 4);
+  VALIDATE_ARGUMENT_TYPE(info, 0, IsObject);
+  VALIDATE_ARGUMENT_TYPE(info, 1, IsUint32);
+  VALIDATE_ARGUMENT_TYPE(info, 2, IsFunction);
+  VALIDATE_ARGUMENT_TYPE(info, 3, IsUint32);
+
+  OC_DO_CALL(OCRDDiscover, info[2], OCRDDiscover(&(callbackInfo->handle),
+    (OCConnectivityType)Nan::To<uint32_t>(info[1]).FromJust(),
+    &callbackData, (OCQualityOfService)Nan::To<uint32_t>(info[6]).FromJust()));
+}
+
+static bool c_OCResourceArray(Local<Value> jsArrayValue,
+                              std::vector<OCDoHandle>* vector,
+                              size_t limit) {
+  Local<Array> jsArray = Local<Array>::Cast();
+}
+
+NAN_METHOD(bind_OCRDPublish) {
+  VALIDATE_ARGUMENT_COUNT(info, 7);
+  VALIDATE_ARGUMENT_TYPE(info, 0, IsObject);
+  VALIDATE_ARGUMENT_TYPE(info, 1, IsString);
+  VALIDATE_ARGUMENT_TYPE(info, 2, IsUint32);
+  VALIDATE_ARGUMENT_TYPE(info, 3, IsArray);
+  VALIDATE_ARGUMENT_TYPE(info, 4, IsUint32);
+  VALIDATE_ARGUMENT_TYPE(info, 5, IsFunction);
+  VALIDATE_ARGUMENT_TYPE(info, 6, IsUint32);
+
+  Local<Array> handles = Local<Array>::Cast(info[3]);
+  size_t length = handles->Length();
+  if (length > UINT8_MAX) {
+    Nan::ThrowError("OCRDPublish: Number of resources exceeds UINT8_MAX");
+    return;
+  }
+
+  std::vector<OCResourceHandle> resources(length);
+  for (size_t index = 0; index < length; index++) {
+    Local<Value> value = Nan::Get(handles, index).ToLocalChecked();
+    VALIDATE_VALUE_TYPE(value, IsObject, "OCRDPublish: Resources array item",
+        return);
+    handles[index] = JSOCResourceHandle::Resolve(Local<Object>::Cast(value));
+    if (handles[index] == nullptr) {
+      return;
+    }
+  }
+
+  OC_DO_CALL(OCRDPublish, info[5], OCRDPublish(&(callbackInfo->handle),
+    (const char *)*String::Utf8Value(info[1]),
+    (OCConnectivityType)Nan::To<uint32_t>(info[2]).FromJust(),
+    handles.data(), (uint8_t)handles.size(),
+    (uint32_t)Nan::To<uint32_t>(info[4]),
+    &callbackData, (OCQualityOfService)Nan::To<uint32_t>(info[6]).FromJust()));
 }
 
 NAN_METHOD(bind_OCCancel) {
