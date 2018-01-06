@@ -29,6 +29,7 @@ extern "C" {
 #include <ocstack.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <rd_client.h>
 }
 
 using namespace v8;
@@ -58,7 +59,7 @@ do { \
   OCCallbackData callbackData; \
   CallbackInfo<OCDoHandle> *callbackInfo = new CallbackInfo<OCDoHandle>; \
   if (!callbackInfo) { \
-    Nan::ThrowError(#prefix ": Failed to allocate callback info"); \
+    Nan::ThrowError(prefix ": Failed to allocate callback info"); \
     return; \
   } \
  \
@@ -131,7 +132,7 @@ NAN_METHOD(bind_OCDoResource) {
   // ownership. Similarly, if OCDoResource() fails, iotivity calls the callback
   // that frees the data on our behalf.
 
-  OC_DO_CALL(OCDoResource, info[7], OCDoResource(&(callbackInfo->handle),
+  OC_DO_CALL("OCDoResource", info[7], OCDoResource(&(callbackInfo->handle),
       (OCMethod)Nan::To<uint32_t>(info[1]).FromJust(),
       (const char *)*String::Utf8Value(info[2]),
       destination, payload,
@@ -148,15 +149,36 @@ NAN_METHOD(bind_OCRDDiscover) {
   VALIDATE_ARGUMENT_TYPE(info, 2, IsFunction);
   VALIDATE_ARGUMENT_TYPE(info, 3, IsUint32);
 
-  OC_DO_CALL(OCRDDiscover, info[2], OCRDDiscover(&(callbackInfo->handle),
-    (OCConnectivityType)Nan::To<uint32_t>(info[1]).FromJust(),
-    &callbackData, (OCQualityOfService)Nan::To<uint32_t>(info[6]).FromJust()));
+  OC_DO_CALL("OCRDDiscover", info[2], OCRDDiscover(&(callbackInfo->handle),
+      (OCConnectivityType)Nan::To<uint32_t>(info[1]).FromJust(),
+      &callbackData,
+      (OCQualityOfService)Nan::To<uint32_t>(info[6]).FromJust()));
 }
 
 static bool c_OCResourceArray(Local<Value> jsArrayValue,
-                              std::vector<OCDoHandle>* vector,
+                              std::vector<OCResourceHandle>& vector,
                               size_t limit) {
-  Local<Array> jsArray = Local<Array>::Cast();
+  Local<Array> jsArray = Local<Array>::Cast(jsArrayValue);
+  size_t length = jsArray->Length();
+
+  if (length > limit) {
+    Nan::ThrowError("Resource array length exceeds limit");
+    return false;
+  }
+
+  vector.resize(length);
+  for (size_t index = 0; index < length; index++) {
+    Nan::HandleScope scope;
+    Local<Value> value = Nan::Get(jsArray, index).ToLocalChecked();
+    VALIDATE_VALUE_TYPE(value, IsObject, "Resource array item", return false);
+    vector[index] = JSOCResourceHandle::Resolve(Local<Object>::Cast(value));
+    if (vector[index] == nullptr) {
+      vector.resize(0);
+      return false;
+    }
+  }
+
+  return true;
 }
 
 NAN_METHOD(bind_OCRDPublish) {
@@ -169,30 +191,67 @@ NAN_METHOD(bind_OCRDPublish) {
   VALIDATE_ARGUMENT_TYPE(info, 5, IsFunction);
   VALIDATE_ARGUMENT_TYPE(info, 6, IsUint32);
 
-  Local<Array> handles = Local<Array>::Cast(info[3]);
-  size_t length = handles->Length();
-  if (length > UINT8_MAX) {
-    Nan::ThrowError("OCRDPublish: Number of resources exceeds UINT8_MAX");
+  std::vector<OCResourceHandle> resources;
+  if (!c_OCResourceArray(info[3], resources, UINT8_MAX)) {
     return;
   }
 
-  std::vector<OCResourceHandle> resources(length);
-  for (size_t index = 0; index < length; index++) {
-    Local<Value> value = Nan::Get(handles, index).ToLocalChecked();
-    VALIDATE_VALUE_TYPE(value, IsObject, "OCRDPublish: Resources array item",
-        return);
-    handles[index] = JSOCResourceHandle::Resolve(Local<Object>::Cast(value));
-    if (handles[index] == nullptr) {
-      return;
-    }
+  OC_DO_CALL("OCRDPublish", info[5], OCRDPublish(&(callbackInfo->handle),
+      (const char *)*String::Utf8Value(info[1]),
+      (OCConnectivityType)Nan::To<uint32_t>(info[2]).FromJust(),
+      resources.data(), (uint8_t)resources.size(),
+      (uint32_t)Nan::To<uint32_t>(info[4]).FromJust(),
+      &callbackData,
+      (OCQualityOfService)Nan::To<uint32_t>(info[6]).FromJust()));
+}
+
+NAN_METHOD(bind_OCRDPublishWithDeviceId) {
+  VALIDATE_ARGUMENT_COUNT(info, 8);
+  VALIDATE_ARGUMENT_TYPE(info, 0, IsObject);
+  VALIDATE_ARGUMENT_TYPE(info, 1, IsString);
+  VALIDATE_ARGUMENT_TYPE(info, 2, IsString);
+  VALIDATE_ARGUMENT_TYPE(info, 3, IsUint32);
+  VALIDATE_ARGUMENT_TYPE(info, 4, IsArray);
+  VALIDATE_ARGUMENT_TYPE(info, 5, IsUint32);
+  VALIDATE_ARGUMENT_TYPE(info, 6, IsFunction);
+  VALIDATE_ARGUMENT_TYPE(info, 7, IsUint32);
+
+  std::vector<OCResourceHandle> resources;
+  if (!c_OCResourceArray(info[4], resources, UINT8_MAX)) {
+    return;
   }
 
-  OC_DO_CALL(OCRDPublish, info[5], OCRDPublish(&(callbackInfo->handle),
-    (const char *)*String::Utf8Value(info[1]),
-    (OCConnectivityType)Nan::To<uint32_t>(info[2]).FromJust(),
-    handles.data(), (uint8_t)handles.size(),
-    (uint32_t)Nan::To<uint32_t>(info[4]),
-    &callbackData, (OCQualityOfService)Nan::To<uint32_t>(info[6]).FromJust()));
+  OC_DO_CALL("OCRDPublishWithDeviceId", info[6], OCRDPublishWithDeviceId(
+      &(callbackInfo->handle),
+      (const char *)*String::Utf8Value(info[1]),
+      (const unsigned char *)*String::Utf8Value(info[2]),
+      (OCConnectivityType)Nan::To<uint32_t>(info[3]).FromJust(),
+      resources.data(), (uint8_t)resources.size(),
+      (uint32_t)Nan::To<uint32_t>(info[5]).FromJust(),
+      &callbackData,
+      (OCQualityOfService)Nan::To<uint32_t>(info[7]).FromJust()));
+}
+
+NAN_METHOD(bind_OCRDDelete) {
+  VALIDATE_ARGUMENT_COUNT(info, 6);
+  VALIDATE_ARGUMENT_TYPE(info, 0, IsObject);
+  VALIDATE_ARGUMENT_TYPE(info, 1, IsString);
+  VALIDATE_ARGUMENT_TYPE(info, 2, IsUint32);
+  VALIDATE_ARGUMENT_TYPE(info, 3, IsArray);
+  VALIDATE_ARGUMENT_TYPE(info, 4, IsFunction);
+  VALIDATE_ARGUMENT_TYPE(info, 5, IsUint32);
+
+  std::vector<OCResourceHandle> resources;
+  if (!c_OCResourceArray(info[3], resources, UINT8_MAX)) {
+    return;
+  }
+
+  OC_DO_CALL("OCRDDelete", info[4], OCRDDelete(&(callbackInfo->handle),
+      (const char *)*String::Utf8Value(info[1]),
+      (OCConnectivityType)Nan::To<uint32_t>(info[2]).FromJust(),
+      resources.data(), (uint8_t)resources.size(),
+      &callbackData,
+      (OCQualityOfService)Nan::To<uint32_t>(info[5]).FromJust()));
 }
 
 NAN_METHOD(bind_OCCancel) {
