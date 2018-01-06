@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#include <vector>
 #include <string>
+#include <vector>
 
 #include "../common.h"
 #include "../structures/handles.h"
@@ -27,9 +27,9 @@
 extern "C" {
 #include <ocpayload.h>
 #include <ocstack.h>
-#include <stdlib.h>
-#include <stdint.h>
 #include <rd_client.h>
+#include <stdint.h>
+#include <stdlib.h>
 }
 
 using namespace v8;
@@ -54,30 +54,30 @@ static OCStackApplicationResult defaultOCClientResponseHandler(
       Nan::New(callbackInfo->jsHandle), js_OCClientResponse(clientResponse));
 }
 
-#define OC_DO_CALL(prefix, jsCallback, doCall) \
-do { \
-  OCCallbackData callbackData; \
-  CallbackInfo<OCDoHandle> *callbackInfo = new CallbackInfo<OCDoHandle>; \
-  if (!callbackInfo) { \
-    Nan::ThrowError(prefix ": Failed to allocate callback info"); \
-    return; \
-  } \
- \
-  callbackData.context = (void *)callbackInfo; \
-  callbackData.cb = defaultOCClientResponseHandler; \
-  callbackData.cd = (OCClientContextDeleter)deleteNanCallback; \
- \
-  OCStackResult returnValue = doCall; \
- \
-  if (returnValue == OC_STACK_OK) { \
-    Nan::Set(Nan::To<Object>(info[0]).ToLocalChecked(), \
-             Nan::New("handle").ToLocalChecked(), \
-             callbackInfo->Init(JSOCDoHandle::New(callbackInfo), \
-                                Local<Function>::Cast((jsCallback)))); \
-  } \
- \
-  info.GetReturnValue().Set(Nan::New(returnValue)); \
-} while (0)
+#define OC_DO_CALL(prefix, jsCallback, doCall)                             \
+  do {                                                                     \
+    OCCallbackData callbackData;                                           \
+    CallbackInfo<OCDoHandle> *callbackInfo = new CallbackInfo<OCDoHandle>; \
+    if (!callbackInfo) {                                                   \
+      Nan::ThrowError(prefix ": Failed to allocate callback info");        \
+      return;                                                              \
+    }                                                                      \
+                                                                           \
+    callbackData.context = (void *)callbackInfo;                           \
+    callbackData.cb = defaultOCClientResponseHandler;                      \
+    callbackData.cd = (OCClientContextDeleter)deleteNanCallback;           \
+                                                                           \
+    OCStackResult returnValue = doCall;                                    \
+                                                                           \
+    if (returnValue == OC_STACK_OK) {                                      \
+      Nan::Set(Nan::To<Object>(info[0]).ToLocalChecked(),                  \
+               Nan::New("handle").ToLocalChecked(),                        \
+               callbackInfo->Init(JSOCDoHandle::New(callbackInfo),         \
+                                  Local<Function>::Cast((jsCallback))));   \
+    }                                                                      \
+                                                                           \
+    info.GetReturnValue().Set(Nan::New(returnValue));                      \
+  } while (0)
 
 NAN_METHOD(bind_OCDoResource) {
   VALIDATE_ARGUMENT_COUNT(info, 8);
@@ -95,7 +95,6 @@ NAN_METHOD(bind_OCDoResource) {
   OCPayload *payload = 0;
   std::vector<OCHeaderOption> options;
   uint8_t optionCount = 0;
-  OCCallbackData data;
 
   if (info[8]->IsArray()) {
     Local<Array> optionArray = Local<Array>::Cast(info[8]);
@@ -132,14 +131,16 @@ NAN_METHOD(bind_OCDoResource) {
   // ownership. Similarly, if OCDoResource() fails, iotivity calls the callback
   // that frees the data on our behalf.
 
-  OC_DO_CALL("OCDoResource", info[7], OCDoResource(&(callbackInfo->handle),
-      (OCMethod)Nan::To<uint32_t>(info[1]).FromJust(),
-      (const char *)*String::Utf8Value(info[2]),
-      destination, payload,
-      (OCConnectivityType)Nan::To<uint32_t>(info[5]).FromJust(),
-      (OCQualityOfService)Nan::To<uint32_t>(info[6]).FromJust(),
-      &callbackData, options.data(),
-      (uint8_t)Nan::To<uint32_t>(info[9]).FromJust()));
+  OC_DO_CALL(
+      "OCDoResource", info[7],
+      OCDoResource(&(callbackInfo->handle),
+                   (OCMethod)Nan::To<uint32_t>(info[1]).FromJust(),
+                   (const char *)*String::Utf8Value(info[2]), destination,
+                   payload,
+                   (OCConnectivityType)Nan::To<uint32_t>(info[5]).FromJust(),
+                   (OCQualityOfService)Nan::To<uint32_t>(info[6]).FromJust(),
+                   &callbackData, options.data(),
+                   (uint8_t)Nan::To<uint32_t>(info[9]).FromJust()));
 }
 
 NAN_METHOD(bind_OCRDDiscover) {
@@ -149,14 +150,16 @@ NAN_METHOD(bind_OCRDDiscover) {
   VALIDATE_ARGUMENT_TYPE(info, 2, IsFunction);
   VALIDATE_ARGUMENT_TYPE(info, 3, IsUint32);
 
-  OC_DO_CALL("OCRDDiscover", info[2], OCRDDiscover(&(callbackInfo->handle),
-      (OCConnectivityType)Nan::To<uint32_t>(info[1]).FromJust(),
-      &callbackData,
-      (OCQualityOfService)Nan::To<uint32_t>(info[6]).FromJust()));
+  OC_DO_CALL(
+      "OCRDDiscover", info[2],
+      OCRDDiscover(&(callbackInfo->handle),
+                   (OCConnectivityType)Nan::To<uint32_t>(info[1]).FromJust(),
+                   &callbackData,
+                   (OCQualityOfService)Nan::To<uint32_t>(info[6]).FromJust()));
 }
 
 static bool c_OCResourceArray(Local<Value> jsArrayValue,
-                              std::vector<OCResourceHandle>& vector,
+                              std::vector<OCResourceHandle> &vector,
                               size_t limit) {
   Local<Array> jsArray = Local<Array>::Cast(jsArrayValue);
   size_t length = jsArray->Length();
@@ -196,13 +199,14 @@ NAN_METHOD(bind_OCRDPublish) {
     return;
   }
 
-  OC_DO_CALL("OCRDPublish", info[5], OCRDPublish(&(callbackInfo->handle),
-      (const char *)*String::Utf8Value(info[1]),
-      (OCConnectivityType)Nan::To<uint32_t>(info[2]).FromJust(),
-      resources.data(), (uint8_t)resources.size(),
-      (uint32_t)Nan::To<uint32_t>(info[4]).FromJust(),
-      &callbackData,
-      (OCQualityOfService)Nan::To<uint32_t>(info[6]).FromJust()));
+  OC_DO_CALL(
+      "OCRDPublish", info[5],
+      OCRDPublish(
+          &(callbackInfo->handle), (const char *)*String::Utf8Value(info[1]),
+          (OCConnectivityType)Nan::To<uint32_t>(info[2]).FromJust(),
+          resources.data(), (uint8_t)resources.size(),
+          (uint32_t)Nan::To<uint32_t>(info[4]).FromJust(), &callbackData,
+          (OCQualityOfService)Nan::To<uint32_t>(info[6]).FromJust()));
 }
 
 NAN_METHOD(bind_OCRDPublishWithDeviceId) {
@@ -221,15 +225,15 @@ NAN_METHOD(bind_OCRDPublishWithDeviceId) {
     return;
   }
 
-  OC_DO_CALL("OCRDPublishWithDeviceId", info[6], OCRDPublishWithDeviceId(
-      &(callbackInfo->handle),
-      (const char *)*String::Utf8Value(info[1]),
-      (const unsigned char *)*String::Utf8Value(info[2]),
-      (OCConnectivityType)Nan::To<uint32_t>(info[3]).FromJust(),
-      resources.data(), (uint8_t)resources.size(),
-      (uint32_t)Nan::To<uint32_t>(info[5]).FromJust(),
-      &callbackData,
-      (OCQualityOfService)Nan::To<uint32_t>(info[7]).FromJust()));
+  OC_DO_CALL(
+      "OCRDPublishWithDeviceId", info[6],
+      OCRDPublishWithDeviceId(
+          &(callbackInfo->handle), (const char *)*String::Utf8Value(info[1]),
+          (const unsigned char *)*String::Utf8Value(info[2]),
+          (OCConnectivityType)Nan::To<uint32_t>(info[3]).FromJust(),
+          resources.data(), (uint8_t)resources.size(),
+          (uint32_t)Nan::To<uint32_t>(info[5]).FromJust(), &callbackData,
+          (OCQualityOfService)Nan::To<uint32_t>(info[7]).FromJust()));
 }
 
 NAN_METHOD(bind_OCRDDelete) {
@@ -246,12 +250,13 @@ NAN_METHOD(bind_OCRDDelete) {
     return;
   }
 
-  OC_DO_CALL("OCRDDelete", info[4], OCRDDelete(&(callbackInfo->handle),
-      (const char *)*String::Utf8Value(info[1]),
-      (OCConnectivityType)Nan::To<uint32_t>(info[2]).FromJust(),
-      resources.data(), (uint8_t)resources.size(),
-      &callbackData,
-      (OCQualityOfService)Nan::To<uint32_t>(info[5]).FromJust()));
+  OC_DO_CALL(
+      "OCRDDelete", info[4],
+      OCRDDelete(&(callbackInfo->handle),
+                 (const char *)*String::Utf8Value(info[1]),
+                 (OCConnectivityType)Nan::To<uint32_t>(info[2]).FromJust(),
+                 resources.data(), (uint8_t)resources.size(), &callbackData,
+                 (OCQualityOfService)Nan::To<uint32_t>(info[5]).FromJust()));
 }
 
 NAN_METHOD(bind_OCCancel) {
