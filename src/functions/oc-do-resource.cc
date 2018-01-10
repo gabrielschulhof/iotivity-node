@@ -63,9 +63,41 @@ static OCStackApplicationResult defaultOCClientResponseHandler(
   return cResult;
 }
 
+#define OC_DO_CALL(env, info, arguments, conTypeIndex, qosIndex, cbIndex,      \
+                   doCall)                                                     \
+  do {                                                                         \
+    J2C_VALIDATE_VALUE_TYPE_THROW(env, (arguments)[0], napi_object, "handle"); \
+    J2C_VALIDATE_VALUE_TYPE_THROW(env, (arguments)[(cbIndex)], napi_function,  \
+                                  "callback");                                 \
+    J2C_DECLARE_VALUE_JS_THROW(OCConnectivityType, connectivityType, env,      \
+                               arguments[(conTypeIndex)], napi_number,         \
+                               "connectivityType", uint32, uint32_t);          \
+    J2C_DECLARE_VALUE_JS_THROW(OCQualityOfService, qos, env,                   \
+                               arguments[(qosIndex)], napi_number, "qos",      \
+                               uint32, uint32_t);                              \
+                                                                               \
+    JSOCDoHandle *cData;                                                       \
+    napi_value jsHandle;                                                       \
+    HELPER_CALL_THROW(env, JSOCDoHandle::New(env, &jsHandle, &cData));         \
+                                                                               \
+    OCCallbackData cbData;                                                     \
+    cbData.context = cData;                                                    \
+    cbData.cb = defaultOCClientResponseHandler;                                \
+    cbData.cd = deleteCallback;                                                \
+                                                                               \
+    OCStackResult result = doCall;                                             \
+                                                                               \
+    if (result == OC_STACK_OK) {                                               \
+      HELPER_CALL_THROW(env,                                                   \
+                        cData->Init(env, (arguments)[(cbIndex)], jsHandle));   \
+      NAPI_CALL_THROW(env, napi_set_named_property(env, arguments[0],          \
+                                                   "handle", jsHandle));       \
+    }                                                                          \
+    C2J_SET_RETURN_VALUE(env, info, double, ((double)result));                 \
+  } while (0)
+
 napi_value bind_OCDoResource(napi_env env, napi_callback_info info) {
   J2C_DECLARE_ARGUMENTS(env, info, 9);
-  J2C_VALIDATE_VALUE_TYPE_THROW(env, arguments[0], napi_object, "handle");
   J2C_DECLARE_VALUE_JS_THROW(OCMethod, method, env, arguments[1], napi_number,
                              "method", uint32, uint32_t);
   J2C_GET_STRING_TRACKED_JS_THROW(requestUri, env, arguments[2], false,
@@ -84,34 +116,11 @@ napi_value bind_OCDoResource(napi_env env, napi_callback_info info) {
   OCPayload *payload = nullptr;
   HELPER_CALL_THROW(env, c_OCPayload(env, arguments[4], &payload));
 
-  J2C_DECLARE_VALUE_JS_THROW(OCConnectivityType, connectivityType, env,
-                             arguments[5], napi_number, "connectivityType",
-                             uint32, uint32_t);
-  J2C_DECLARE_VALUE_JS_THROW(OCQualityOfService, qos, env, arguments[6],
-                             napi_number, "qos", uint32, uint32_t);
-
-  J2C_VALIDATE_VALUE_TYPE_THROW(env, arguments[7], napi_function, "callback");
-
   J2C_VALIDATE_IS_ARRAY_THROW(env, arguments[8], true, "options");
 
-  JSOCDoHandle *cData;
-  napi_value jsHandle;
-  HELPER_CALL_THROW(env, JSOCDoHandle::New(env, &jsHandle, &cData));
-
-  OCCallbackData cbData;
-  cbData.context = cData;
-  cbData.cb = defaultOCClientResponseHandler;
-  cbData.cd = deleteCallback;
-  OCStackResult result =
-      OCDoResource(&(cData->data), method, requestUri, destination, payload,
-                   connectivityType, qos, &cbData, nullptr, 0);
-
-  if (result == OC_STACK_OK) {
-    HELPER_CALL_THROW(env, cData->Init(env, arguments[7], jsHandle));
-    NAPI_CALL_THROW(
-        env, napi_set_named_property(env, arguments[0], "handle", jsHandle));
-  }
-  C2J_SET_RETURN_VALUE(env, info, double, ((double)result));
+  OC_DO_CALL(env, info, arguments, 5, 6, 7,
+             OCDoResource(&(cData->data), method, requestUri, destination,
+                          payload, connectivityType, qos, &cbData, nullptr, 0));
 }
 
 napi_value bind_OCRDDiscover(napi_env env, napi_callback_info info) {
