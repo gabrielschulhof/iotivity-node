@@ -29,8 +29,7 @@ extern "C" {
 static void deleteCallback(void *data) {
   JSOCDoHandle *cData = (JSOCDoHandle *)data;
   DECLARE_HANDLE_SCOPE(scope, cData->env, );
-  HELPER_CALL(JSOCDoHandle::Destroy(scope.env, cData),
-              THROW_BODY(scope.env, ));
+  HELPER_CALL(JSOCDoHandle::Destroy(scope.env, cData), THROW_BODY(scope.env, ));
 }
 
 static OCStackApplicationResult defaultOCClientResponseHandler(

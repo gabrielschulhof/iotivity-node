@@ -36,8 +36,11 @@ class FlatArray {
 };
 
 FlatArray::FlatArray()
-    : data(nullptr), dimensions(), arrayType(OCREP_PROP_NULL),
-      totalElements(0), typeEstablished(false) {}
+    : data(nullptr),
+      dimensions(),
+      arrayType(OCREP_PROP_NULL),
+      totalElements(0),
+      typeEstablished(false) {}
 FlatArray::~FlatArray() {
   size_t index;
   if (data) {
