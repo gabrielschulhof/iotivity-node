@@ -22,6 +22,8 @@
 extern "C" {
 #include <ocpayload.h>
 #include <ocstack.h>
+#include <rd_client.h>
+#include <stdint.h>
 }
 
 static void deleteCallback(void *data) {
@@ -107,6 +109,33 @@ napi_value bind_OCDoResource(napi_env env, napi_callback_info info) {
 
   if (result == OC_STACK_OK) {
     HELPER_CALL_THROW(env, cData->Init(env, arguments[7], jsHandle));
+    NAPI_CALL_THROW(
+        env, napi_set_named_property(env, arguments[0], "handle", jsHandle));
+  }
+  C2J_SET_RETURN_VALUE(env, info, double, ((double)result));
+}
+
+napi_value bind_OCRDDiscover(napi_env env, napi_callback_info info) {
+  J2C_DECLARE_ARGUMENTS(env, info, 4);
+  J2C_VALIDATE_VALUE_TYPE_THROW(env, arguments[0], napi_object, "handle");
+  J2C_DECLARE_VALUE_JS_THROW(OCConnectivityType, connectivityType, env,
+                             arguments[1], napi_number, "connectivityType",
+                             uint32, uint32_t);
+  JSOCDoHandle *cData;
+  napi_value jsHandle;
+  HELPER_CALL_THROW(env, JSOCDoHandle::New(env, &jsHandle, &cData));
+
+  OCCallbackData cbData;
+  cbData.context = cData;
+  cbData.cb = defaultOCClientResponseHandler;
+  cbData.cd = deleteCallback;
+  J2C_DECLARE_VALUE_JS_THROW(OCQualityOfService, qos, env, arguments[3],
+                             napi_number, "qos", uint32, uint32_t);
+
+  OCStackResult result =
+      OCRDDiscover(&(cData->data), connectivityType, &cbData, qos);
+  if (result == OC_STACK_OK) {
+    HELPER_CALL_THROW(env, cData->Init(env, arguments[2], jsHandle));
     NAPI_CALL_THROW(
         env, napi_set_named_property(env, arguments[0], "handle", jsHandle));
   }

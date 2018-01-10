@@ -27,7 +27,7 @@
 				# When building internally, we use pre-defined CFLAGS/LIBS, trusting that the CSDK
 				# will be built successfully
 
-				"defines": [ "ROUTING_EP", "__WITH_DTLS__" ],
+				"defines": [ "ROUTING_EP", "__WITH_DTLS__", "RD_CLIENT" ],
 				"include_dirs+": [ '<@(internalOCTBStack_include_dirs)' ],
 				"conditions": [
 
@@ -43,7 +43,8 @@
 						"libraries": [
 							"-L<(module_root_dir)/iotivity-installed/lib",
 							"-Wl,-rpath <(module_root_dir)/iotivity-installed/lib",
-							"-loctbstack"
+							"-loctbstack",
+							"-lresource_directory"
 						]
 					} ],
 
@@ -109,7 +110,12 @@
 								"files": [
 									"<(module_root_dir)/iotivity-installed/lib/octbstack.dll"
 								]
-							} ]
+							}, {
+								"destination": "<(PRODUCT_DIR)",
+								"files": [
+									"<(module_root_dir)/iotivity-installed/lib/resource_directory.dll"
+								]
+                                                        } ]
 						} ]
 					]
 				} ]
