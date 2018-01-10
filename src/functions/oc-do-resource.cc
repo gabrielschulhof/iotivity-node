@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 
+#include <vector>
+
 #include "../common.h"
 #include "../structures/handles.h"
 #include "../structures/oc-client-response.h"
 #include "../structures/oc-dev-addr.h"
 #include "../structures/oc-payload.h"
+
 extern "C" {
 #include <ocpayload.h>
 #include <ocstack.h>
@@ -127,6 +130,69 @@ napi_value bind_OCRDDiscover(napi_env env, napi_callback_info info) {
   J2C_DECLARE_ARGUMENTS(env, info, 4);
   OC_DO_CALL(env, info, arguments, 1, 3, 2,
       OCRDDiscover(&(cData->data), connectivityType, &cbData, qos));
+}
+
+static std::string c_OCResourceArray(napi_env env, napi_value source,
+                                   std::vector<OCResourceHandle> &destination) {
+  uint32_t length, index;
+  napi_handle_scope scope;
+  napi_value jsHandle;
+  JSOCResourceHandle *cResData;
+
+  J2C_VALIDATE_IS_ARRAY_RETURN(env, source, false, "resource array");
+
+  NAPI_CALL_RETURN(env, napi_get_array_length(env, source, &length));
+  if (length > UINT8_MAX) {
+    return LOCAL_MESSAGE("resource array length exceeds UINT8_MAX");
+  }
+
+  destination.resize(length);
+  for (index = 0; index < length; index++) {
+    NAPI_CALL_RETURN(env, napi_open_handle_scope(env, &scope));
+    NAPI_CALL_RETURN(env, napi_get_element(env, source, index, &jsHandle));
+    HELPER_CALL_RETURN(JSOCResourceHandle::Get(env, jsHandle, &cResData));
+    destination[index] = cResData->data;
+    NAPI_CALL_RETURN(env, napi_close_handle_scope(env, scope));
+  }
+
+  return std::string();
+}
+
+#define OC_DO_RESOURCE_LIST_CALL(env, info, arguments, hostIndex, conTypeIndex, resourceListIndex, cbIndex, qosIndex, doCall) \
+do { \
+  J2C_GET_STRING_TRACKED_JS_THROW(host, env, (arguments)[(hostIndex)], false, "host"); \
+  std::vector<OCResourceHandle> handles; \
+  HELPER_CALL_THROW(env, c_OCResourceArray(env, (arguments)[(resourceListIndex)], handles)); \
+ \
+  OC_DO_CALL((env), (info), (arguments), (conTypeIndex), (qosIndex), (cbIndex), \
+    doCall); \
+} while (0)
+
+napi_value bind_OCRDPublish(napi_env env, napi_callback_info info) {
+  J2C_DECLARE_ARGUMENTS(env, info, 7);
+  J2C_DECLARE_VALUE_JS_THROW(uint32_t, ttl, env, arguments[4], napi_number,
+                             "ttl", uint32, uint32_t);
+  OC_DO_RESOURCE_LIST_CALL(env, info, arguments, 1, 2, 3, 5, 6,
+      OCRDPublish(&(cData->data), host, connectivityType, handles.data(),
+                  handles.size(), ttl, &cbData, qos));
+}
+
+napi_value bind_OCRDPublishWithDeviceId(napi_env env, napi_callback_info info) {
+  J2C_DECLARE_ARGUMENTS(env, info, 8);
+  J2C_GET_STRING_TRACKED_JS_THROW(id, env, arguments[2], false, "id");
+  J2C_DECLARE_VALUE_JS_THROW(uint32_t, ttl, env, arguments[5], napi_number,
+                             "ttl", uint32, uint32_t);
+  OC_DO_RESOURCE_LIST_CALL(env, info, arguments, 1, 3, 4, 6, 7,
+      OCRDPublishWithDeviceId(&(cData->data), host, (const unsigned char *)id,
+                              connectivityType, handles.data(), handles.size(),
+                              ttl, &cbData, qos));
+}
+
+napi_value bind_OCRDDelete(napi_env env, napi_callback_info info) {
+  J2C_DECLARE_ARGUMENTS(env, info, 6);
+  OC_DO_RESOURCE_LIST_CALL(env, info, arguments, 1, 2, 3, 4, 5,
+      OCRDDelete(&(cData->data), host, connectivityType, handles.data(),
+                 handles.size(), &cbData, qos));
 }
 
 napi_value bind_OCCancel(napi_env env, napi_callback_info info) {
