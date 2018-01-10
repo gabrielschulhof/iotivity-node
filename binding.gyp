@@ -1,6 +1,6 @@
 {
 	"variables": {
-		"externalOCTBStack": "<!(node -p \"( process.env.OCTBSTACK_CFLAGS && process.env.OCTBSTACK_LIBS ) ? 'true' : 'false';\")",
+		"externalOCTBStack": "<!(node -p \"!!( process.env.OCTBSTACK_CFLAGS && process.env.OCTBSTACK_LIBS );\")",
 		"internalOCTBStack_include_dirs": [
 			"<(module_root_dir)/iotivity-installed/include"
 		]
