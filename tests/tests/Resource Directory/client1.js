@@ -35,7 +35,7 @@ function cleanup() {
 	}
 }
 
-console.log( JSON.stringify( { assertionCount: 6 } ) );
+console.log( JSON.stringify( { assertionCount: 8 } ) );
 
 // Initialize
 result = iotivity.OCInit( null, 0, iotivity.OCMode.OC_CLIENT_SERVER );
@@ -79,9 +79,22 @@ result = iotivity.OCRDDiscover(
 			iotivity.OCRDPublish( {}, response.addr.addr + ":" + response.addr.port,
 				iotivity.OCConnectivityType.CT_DEFAULT, [ resourceHandleReceptacle.handle ], 86400,
 				function OCRDPublishResponse( handle, response ) {
+					var index;
+					var links = response.payload.values.links;
+
 					console.log( JSON.stringify( { info: true, message:
 						"Server: OCRDPublish response: " + JSON.stringify( response, null, 4 )
 					} ) );
+
+					for ( index in links ) {
+						if ( links[ index ].href === "/a/" + uuid ) {
+							break;
+						}
+					}
+
+					testUtils.assert( "ok", index < links.length,
+						"Server: Posted resource found in OCRDPublish response" );
+
 					return iotivity.OCStackApplicationResult.OC_STACK_DELETE_TRANSACTION;
 				}, iotivity.OCQualityOfService.OC_HIGH_QOS ) );
 
