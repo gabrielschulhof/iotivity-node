@@ -115,7 +115,7 @@
 								"files": [
 									"<(module_root_dir)/iotivity-installed/lib/resource_directory.dll"
 								]
-                                                        } ]
+							} ]
 						} ]
 					]
 				} ]
