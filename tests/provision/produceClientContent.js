@@ -8,7 +8,6 @@ module.exports = function produceClientContent( item, creds ) {
 					subject: { conntype: "anon-clear" },
 					resources: [
 						{ href: "/oic/res" },
-						{ href: "/oic/rd" },
 						{ href: "/oic/d" },
 						{ href: "/oic/p" },
 						{ href: "/oic/sec/doxm" }
@@ -20,12 +19,27 @@ module.exports = function produceClientContent( item, creds ) {
 					subject: { conntype: "auth-crypt" },
 					resources: [
 						{ href: "/oic/res" },
-						{ href: "/oic/rd" },
 						{ href: "/oic/d" },
 						{ href: "/oic/p" },
 						{ href: "/oic/sec/doxm" }
 					],
 					permission: 2
+				},
+				{
+					aceid: 3,
+					subject: { conntype: "anon-clear" },
+					resources: [
+						{ href: "/oic/rd" }
+					],
+					permission: 31
+				},
+				{
+					aceid: 4,
+					subject: { conntype: "auth-crypt" },
+					resources: [
+						{ href: "/oic/rd" }
+					],
+					permission: 31
 				}
 			],
 			rowneruuid: item.deviceUuid
