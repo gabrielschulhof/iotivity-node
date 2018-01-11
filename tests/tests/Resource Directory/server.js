@@ -27,15 +27,16 @@ function cleanup() {
 		processLoop = null;
 	}
 
-	testUtils.assert( "ok", true, "Server: OCProcess succeeded " + processCallCount + " times" );
+	testUtils.assert( "ok", true, "RD Server: OCProcess succeeded " + processCallCount +
+		" times" );
 
 	cleanupResult = iotivity.OCRDStop();
-	if ( testUtils.stackOKOrDie( "Server", "OCRDStop", cleanupResult ) ) {
+	if ( testUtils.stackOKOrDie( "RD Server", "OCRDStop", cleanupResult ) ) {
 		process.exit( 0 );
 	}
 
 	cleanupResult = iotivity.OCStop();
-	if ( testUtils.stackOKOrDie( "Server", "OCStop", cleanupResult ) ) {
+	if ( testUtils.stackOKOrDie( "RD Server", "OCStop", cleanupResult ) ) {
 		process.exit( 0 );
 	}
 }
@@ -44,13 +45,13 @@ console.log( JSON.stringify( { assertionCount: 6 } ) );
 
 // Initialize
 result = iotivity.OCRegisterPersistentStorageHandler( require( "../../../lib/StorageHandler" )() );
-testUtils.stackOKOrDie( "Server", "OCRegisterPersistentStorageHandler", result );
+testUtils.stackOKOrDie( "RD Server", "OCRegisterPersistentStorageHandler", result );
 
 result = iotivity.OCInit( null, 0, iotivity.OCMode.OC_SERVER );
-testUtils.stackOKOrDie( "Server", "OCInit", result );
+testUtils.stackOKOrDie( "RD Server", "OCInit", result );
 
 result = iotivity.OCRDStart();
-testUtils.stackOKOrDie( "Server", "OCRDStart", result );
+testUtils.stackOKOrDie( "RD Server", "OCRDStart", result );
 
 // Set up process loop
 processLoop = setInterval( function() {
@@ -60,7 +61,7 @@ processLoop = setInterval( function() {
 		processCallCount++;
 	} else {
 		testUtils.stackOKOrDie(
-			"Server",
+			"RD Server",
 			"OCProcess(after " + processCallCount + " successful calls)",
 			processResult );
 	}

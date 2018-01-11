@@ -28,10 +28,10 @@ function cleanup() {
 		processLoop = null;
 	}
 
-	testUtils.assert( "ok", true, "Client: OCProcess succeeded " + processCallCount + " times" );
+	testUtils.assert( "ok", true, "Server: OCProcess succeeded " + processCallCount + " times" );
 
 	cleanupResult = iotivity.OCStop();
-	if ( testUtils.stackOKOrDie( "Client", "OCStop", cleanupResult ) ) {
+	if ( testUtils.stackOKOrDie( "Server", "OCStop", cleanupResult ) ) {
 		console.log( JSON.stringify( { killPeer: true } ) );
 		process.exit( 0 );
 	}
@@ -41,7 +41,7 @@ console.log( JSON.stringify( { assertionCount: 6 } ) );
 
 // Initialize
 result = iotivity.OCInit( null, 0, iotivity.OCMode.OC_CLIENT );
-testUtils.stackOKOrDie( "Client", "OCInit", result );
+testUtils.stackOKOrDie( "Server", "OCInit", result );
 
 // Set up OCProcess loop
 processLoop = setInterval( function() {
@@ -51,7 +51,7 @@ processLoop = setInterval( function() {
 		processCallCount++;
 	} else {
 		testUtils.stackOKOrDie(
-			"Client",
+			"Server",
 			"OCProcess(after " + processCallCount + " successful calls)",
 			processResult );
 	}
@@ -68,4 +68,4 @@ result = iotivity.OCRDDiscover(
 		return iotivity.OCStackApplicationResult.OC_STACK_DELETE_TRANSACTION;
 	},
 	iotivity.OCQualityOfService.OC_HIGH_QOS );
-testUtils.stackOKOrDie( "Client", "OCRDDiscover", result );
+testUtils.stackOKOrDie( "Server", "OCRDDiscover", result );

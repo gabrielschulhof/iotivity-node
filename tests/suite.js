@@ -247,7 +247,7 @@ function runTestSuites( files ) {
 			// We run the servers first, because the servers have to be there before the clients
 			// can run. OTOH, the clients may initiate the termination of the test via a non-error
 			// teardown request.
-			async.each( serverPaths, function( serverPath, callback ) {
+			async.eachSeries( serverPaths, function( serverPath, callback ) {
 				var serverIndex = 0;
 				children.push( spawnOne( assert, _.extend( {}, spawnOptions, {
 					name: "Server" + ( serverPaths.length > 1 ? " " + ( ++serverIndex ) : "" ),
