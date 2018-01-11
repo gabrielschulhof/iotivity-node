@@ -68,10 +68,6 @@ function doOneTargetedDiscovery() {
 			rdDevAddr, null, iotivity.OCConnectivityType.CT_DEFAULT,
 			iotivity.OCQualityOfService.OC_HIGH_QOS, function( handle, response ) {
 				var payload;
-				console.log( JSON.stringify( { info: true, message:
-					"Client: OCDoResource(retrieve /oic/res of RD) response: " +
-						JSON.stringify( response, null, 4 )
-				} ) );
 
 				for ( payload = response.payload; payload; payload = payload.next ) {
 					if ( payload.uri === "/a/" + uuid ) {
@@ -95,9 +91,6 @@ function doOneDiscovery() {
 
 			rdDevAddr = response.addr;
 
-			console.log( JSON.stringify( { info: true, message:
-				"Client: OCRDDiscover response: " + JSON.stringify( response, null, 4 )
-			} ) );
 			setTimeout( doOneTargetedDiscovery, 0 );
 			return iotivity.OCStackApplicationResult.OC_STACK_DELETE_TRANSACTION;
 		}, iotivity.OCQualityOfService.OC_HIGH_QOS ) );

@@ -62,16 +62,9 @@ result = iotivity.OCRDDiscover(
 	function OCRDDiscoverResponse( handle, response ) {
 		var resourceHandleReceptacle = {};
 
-		console.log( JSON.stringify( { info: true, message:
-			"Server: OCRDDiscover response: " + JSON.stringify( response, null, 4 )
-		} ) );
-
 		testUtils.stackOKOrDie( "Server", "OCCreateResource",
 			iotivity.OCCreateResource( resourceHandleReceptacle, "core.light", "oic.if.baseline",
 				"/a/" + uuid, function ResourceEntityHandler() {
-					console.log( JSON.stringify( { info: true, message:
-						"Server: Resource entity handler: " + JSON.stringify( arguments, null, 4 )
-					} ) );
 					return iotivity.OCEntityHandlerResponse.OC_EH_OK;
 				}, iotivity.OCResourceProperty.OC_DISCOVERABLE ) );
 
@@ -81,10 +74,6 @@ result = iotivity.OCRDDiscover(
 				function OCRDPublishResponse( handle, response ) {
 					var index;
 					var links = response.payload.values.links;
-
-					console.log( JSON.stringify( { info: true, message:
-						"Server: OCRDPublish response: " + JSON.stringify( response, null, 4 )
-					} ) );
 
 					for ( index in links ) {
 						if ( links[ index ].href === "/a/" + uuid ) {
