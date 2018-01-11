@@ -8,6 +8,7 @@ module.exports = function produceClientContent( item, creds ) {
 					subject: { conntype: "anon-clear" },
 					resources: [
 						{ href: "/oic/res" },
+						{ href: "/oic/rd" },
 						{ href: "/oic/d" },
 						{ href: "/oic/p" },
 						{ href: "/oic/sec/doxm" }
@@ -19,6 +20,7 @@ module.exports = function produceClientContent( item, creds ) {
 					subject: { conntype: "auth-crypt" },
 					resources: [
 						{ href: "/oic/res" },
+						{ href: "/oic/rd" },
 						{ href: "/oic/d" },
 						{ href: "/oic/p" },
 						{ href: "/oic/sec/doxm" }
