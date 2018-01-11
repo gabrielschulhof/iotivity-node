@@ -61,16 +61,15 @@ processLoop = setInterval( function() {
 var rdDevAddr;
 
 // Keep retrieving /oic/rd from the resource directory in an idle loop
-function doOneRetrieve() {
-	testUtils.stackOKOrDie( "Client", "OCDoResource(retrieve /oic/rd)",
-		iotivity.OCDoResource( {}, iotivity.OCMethod.OC_REST_GET, iotivity.OC_RSRVD_RD_URI,
+function doOneTargetedDiscovery() {
+	testUtils.stackOKOrDie( "Client", "OCDoResource(retrieve /oic/res of RD)",
+		iotivity.OCDoResource( {}, iotivity.OCMethod.OC_REST_GET, iotivity.OC_RSRVD_WELL_KNOWN_URI,
 			rdDevAddr, null, iotivity.OCConnectivityType.CT_DEFAULT,
 			iotivity.OCQualityOfService.OC_HIGH_QOS, function( handle, response ) {
 				console.log( JSON.stringify( { info: true, message:
-					"Client: OCDoResource(retrieve /oic/rd) response: " +
+					"Client: OCDoResource(retrieve /oic/res of RD) response: " +
 						JSON.stringify( response, null, 4 )
 				} ) );
-				setTimeout( doOneRetrieve, 0 );
 				return iotivity.OCStackApplicationResult.OC_STACK_DELETE_TRANSACTION;
 			}, null ) );
 }
@@ -86,7 +85,7 @@ function doOneDiscovery() {
 			console.log( JSON.stringify( { info: true, message:
 				"Client: OCRDDiscover response: " + JSON.stringify( response, null, 4 )
 			} ) );
-			setTimeout( doOneRetrieve, 0 );
+			setTimeout( doOneTargetedDiscovery, 0 );
 			return iotivity.OCStackApplicationResult.OC_STACK_DELETE_TRANSACTION;
 		}, iotivity.OCQualityOfService.OC_HIGH_QOS ) );
 }
