@@ -36,7 +36,7 @@ function cleanup() {
 	}
 }
 
-console.log( JSON.stringify( { assertionCount: 7 } ) );
+console.log( JSON.stringify( { assertionCount: 6 } ) );
 
 // Initialize
 result = iotivity.OCRegisterPersistentStorageHandler( require( "../../../lib/StorageHandler" )() );
@@ -61,26 +61,26 @@ processLoop = setInterval( function() {
 
 var rdDevAddr;
 
-// Keep retrieving /oic/rd from the resource directory in an idle loop
+// Keep retrieving /oic/rd from the resource directory in an idle loop until it returns the
+// expected resource.
 function doOneTargetedDiscovery() {
-	testUtils.stackOKOrDie( "Client", "OCDoResource(retrieve /oic/res of RD)",
-		iotivity.OCDoResource( {}, iotivity.OCMethod.OC_REST_GET, iotivity.OC_RSRVD_WELL_KNOWN_URI,
-			rdDevAddr, null, iotivity.OCConnectivityType.CT_DEFAULT,
-			iotivity.OCQualityOfService.OC_HIGH_QOS, function( handle, response ) {
-				var payload;
+	iotivity.OCDoResource( {}, iotivity.OCMethod.OC_REST_GET, iotivity.OC_RSRVD_WELL_KNOWN_URI,
+		rdDevAddr, null, iotivity.OCConnectivityType.CT_DEFAULT,
+		iotivity.OCQualityOfService.OC_HIGH_QOS, function( handle, response ) {
+			var payload;
 
-				for ( payload = response.payload; payload; payload = payload.next ) {
-					if ( payload.uri === "/a/" + uuid ) {
-						cleanup();
-					}
+			for ( payload = response.payload; payload; payload = payload.next ) {
+				if ( payload.uri === "/a/" + uuid ) {
+					cleanup();
 				}
+			}
 
-				if ( !payload ) {
-					setTimeout( doOneTargetedDiscovery, 0 );
-				}
+			if ( !payload ) {
+				setTimeout( doOneTargetedDiscovery, 0 );
+			}
 
-				return iotivity.OCStackApplicationResult.OC_STACK_DELETE_TRANSACTION;
-			}, null ) );
+			return iotivity.OCStackApplicationResult.OC_STACK_DELETE_TRANSACTION;
+		}, null );
 }
 
 function doOneDiscovery() {
