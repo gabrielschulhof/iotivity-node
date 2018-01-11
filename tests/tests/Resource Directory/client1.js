@@ -40,7 +40,7 @@ function cleanup() {
 console.log( JSON.stringify( { assertionCount: 6 } ) );
 
 // Initialize
-result = iotivity.OCInit( null, 0, iotivity.OCMode.OC_CLIENT );
+result = iotivity.OCInit( null, 0, iotivity.OCMode.OC_CLIENT_SERVER );
 testUtils.stackOKOrDie( "Server", "OCInit", result );
 
 // Set up OCProcess loop
@@ -61,11 +61,35 @@ processLoop = setInterval( function() {
 result = iotivity.OCRDDiscover(
 	discoverHandleReceptacle,
 	iotivity.OCConnectivityType.CT_DEFAULT,
-	function( handle, response ) {
+	function OCRDDiscoverResponse( handle, response ) {
+		var resourceHandleReceptacle = {};
+
 		console.log( JSON.stringify( { info: true, message:
 			"OCRDDiscover response: " + JSON.stringify( response, null, 4 )
 		} ) );
+
+		testUtils.stackOKOrDie( "Server", "OCCreateResource",
+			iotivity.OCCreateResource( resourceHandleReceptacle, "core.light", "oic.if.baseline",
+				"/a/" + uuid, function ResourceEntityHandler() {
+					console.log( JSON.stringify( { info: true, message:
+						"Resource entity handler: " + JSON.stringify( arguments, null, 4 )
+					} ) );
+					return iotivity.OCEntityHandlerResponse.OC_EH_OK;
+				}, iotivity.OCResourceProperty.OC_DISCOVERABLE ) );
+
+		testUtils.stackOKOrDie( "Server", "OCRDPublish",
+			iotivity.OCRDPublish( {}, response.addr.addr + ":" + response.addr.port,
+				iotivity.OCConnectivityType.CT_DEFAULT, [ resourceHandleReceptacle.handle ], 86400,
+				function OCRDPublishResponse() {
+					console.log( JSON.stringify( { info: true, message:
+						"OCRDPublish response: " + JSON.stringify( arguments, null, 4 )
+					} ) );
+					return iotivity.OCStackApplicationResult.OC_STACK_DELETE_TRANSACTION;
+				}, iotivity.OCQualityOfService.OC_HIGH_QOS ) );
+
 		return iotivity.OCStackApplicationResult.OC_STACK_DELETE_TRANSACTION;
 	},
 	iotivity.OCQualityOfService.OC_HIGH_QOS );
 testUtils.stackOKOrDie( "Server", "OCRDDiscover", result );
+
+process.on( "message", cleanup );

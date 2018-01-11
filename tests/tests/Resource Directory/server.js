@@ -13,7 +13,6 @@
 // limitations under the License.
 
 var result,
-	uuid = process.argv[ 2 ],
 	processCallCount = 0,
 	processLoop = null,
 	iotivity = require( process.argv[ 3 ] + "/lowlevel" ),
