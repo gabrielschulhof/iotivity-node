@@ -13,6 +13,7 @@
 // limitations under the License.
 
 var result,
+	uuid = process.argv[ 2 ],
 	processCallCount = 0,
 	processLoop = null,
 	iotivity = require( process.argv[ 3 ] + "/lowlevel" ),
@@ -66,10 +67,22 @@ function doOneTargetedDiscovery() {
 		iotivity.OCDoResource( {}, iotivity.OCMethod.OC_REST_GET, iotivity.OC_RSRVD_WELL_KNOWN_URI,
 			rdDevAddr, null, iotivity.OCConnectivityType.CT_DEFAULT,
 			iotivity.OCQualityOfService.OC_HIGH_QOS, function( handle, response ) {
+				var payload;
 				console.log( JSON.stringify( { info: true, message:
 					"Client: OCDoResource(retrieve /oic/res of RD) response: " +
 						JSON.stringify( response, null, 4 )
 				} ) );
+
+				for ( payload = response.payload; payload; payload = payload.next ) {
+					if ( payload.uri === "/a/" + uuid ) {
+						cleanup();
+					}
+				}
+
+				if ( !payload ) {
+					setTimeout( doOneTargetedDiscovery, 0 );
+				}
+
 				return iotivity.OCStackApplicationResult.OC_STACK_DELETE_TRANSACTION;
 			}, null ) );
 }
@@ -91,5 +104,3 @@ function doOneDiscovery() {
 }
 
 setTimeout( doOneDiscovery, 0 );
-
-process.on( "message", cleanup );

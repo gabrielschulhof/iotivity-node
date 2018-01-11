@@ -16,7 +16,6 @@ var result,
 	uuid = process.argv[ 2 ],
 	processCallCount = 0,
 	processLoop = null,
-	discoverHandleReceptacle = {},
 	iotivity = require( process.argv[ 3 ] + "/lowlevel" ),
 	testUtils = require( "../../utils" )( iotivity );
 
@@ -32,7 +31,6 @@ function cleanup() {
 
 	cleanupResult = iotivity.OCStop();
 	if ( testUtils.stackOKOrDie( "Server", "OCStop", cleanupResult ) ) {
-		console.log( JSON.stringify( { killPeer: true } ) );
 		process.exit( 0 );
 	}
 }
@@ -59,7 +57,7 @@ processLoop = setInterval( function() {
 
 // Discover
 result = iotivity.OCRDDiscover(
-	discoverHandleReceptacle,
+	{},
 	iotivity.OCConnectivityType.CT_DEFAULT,
 	function OCRDDiscoverResponse( handle, response ) {
 		var resourceHandleReceptacle = {};
