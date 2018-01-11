@@ -73,7 +73,8 @@ class JSHandle {
     NAPI_CALL_RETURN(
         env, napi_instanceof(env, jsValue, jsConstructor, &isInstanceOf));
     if (!isInstanceOf) {
-      return LOCAL_MESSAGE(std::string("Not an object of type ") + jsType::jsClassName());
+      return LOCAL_MESSAGE(std::string("Not an object of type ") +
+                           jsType::jsClassName());
     }
     void *nativeDataRaw;
     NAPI_CALL_RETURN(env, napi_unwrap(env, jsValue, &nativeDataRaw));
