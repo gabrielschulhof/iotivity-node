@@ -35,7 +35,7 @@ function cleanup() {
 	}
 }
 
-console.log( JSON.stringify( { assertionCount: 8 } ) );
+console.log( JSON.stringify( { assertionCount: 7 } ) );
 
 // Initialize
 result = iotivity.OCInit( null, 0, iotivity.OCMode.OC_CLIENT_SERVER );

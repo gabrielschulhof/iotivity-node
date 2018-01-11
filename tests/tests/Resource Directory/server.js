@@ -40,7 +40,7 @@ function cleanup() {
 	}
 }
 
-console.log( JSON.stringify( { assertionCount: 6 } ) );
+console.log( JSON.stringify( { assertionCount: 5 } ) );
 
 // Initialize
 result = iotivity.OCRegisterPersistentStorageHandler( require( "../../../lib/StorageHandler" )() );
