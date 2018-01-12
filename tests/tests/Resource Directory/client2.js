@@ -71,12 +71,14 @@ function doOneTargetedDiscovery() {
 
 			for ( payload = response.payload; payload; payload = payload.next ) {
 				if ( payload.uri === "/a/" + uuid ) {
-					cleanupRequest( "Client", iotivity, testUtils, response.addr,
-						"/a/" + uuid + "-xyzzy" );
+					break;
 				}
 			}
 
-			if ( !payload ) {
+			if ( payload ) {
+				cleanupRequest( "Client", iotivity, testUtils, response.addr,
+					"/a/" + uuid + "-xyzzy" );
+			} else {
 				setTimeout( doOneTargetedDiscovery, 0 );
 			}
 
