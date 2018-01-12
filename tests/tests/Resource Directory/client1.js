@@ -21,22 +21,16 @@ var result,
 	cleanupRequest = require( "./cleanupRequest" );
 
 function cleanup() {
-	var cleanupResult;
-
 	if ( processLoop ) {
 		clearInterval( processLoop );
 		processLoop = null;
 	}
-
 	testUtils.assert( "ok", true, "Server: OCProcess succeeded " + processCallCount + " times" );
-
-	cleanupResult = iotivity.OCStop();
-	if ( testUtils.stackOKOrDie( "Server", "OCStop", cleanupResult ) ) {
-		process.exit( 0 );
-	}
+	testUtils.stackOKOrDie( "Server", "OCStop", iotivity.OCStop() );
+	process.exit( 0 );
 }
 
-console.log( JSON.stringify( { assertionCount: 7 } ) );
+console.log( JSON.stringify( { assertionCount: 8 } ) );
 
 // Initialize
 result = iotivity.OCInit( null, 0, iotivity.OCMode.OC_CLIENT_SERVER );

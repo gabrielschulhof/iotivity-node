@@ -21,22 +21,16 @@ var result,
 	cleanupRequest = require( "./cleanupRequest" );
 
 function cleanup() {
-	var cleanupResult;
-
 	if ( processLoop ) {
 		clearInterval( processLoop );
 		processLoop = null;
 	}
-
 	testUtils.assert( "ok", true, "Client: OCProcess succeeded " + processCallCount + " times" );
-
-	cleanupResult = iotivity.OCStop();
-	if ( testUtils.stackOKOrDie( "Client", "OCStop", cleanupResult ) ) {
-		process.exit( 0 );
-	}
+	testUtils.stackOKOrDie( "Client", "OCStop", iotivity.OCStop() );
+	process.exit( 0 );
 }
 
-console.log( JSON.stringify( { assertionCount: 6 } ) );
+console.log( JSON.stringify( { assertionCount: 7 } ) );
 
 // Initialize
 result = iotivity.OCRegisterPersistentStorageHandler( require( "../../../lib/StorageHandler" )() );

@@ -22,8 +22,6 @@ var result,
 	testUtils = require( "../../utils" )( iotivity );
 
 function cleanup() {
-	var cleanupResult;
-
 	if ( ++cleanupPrerequisiteCount < 2 ) {
 		return;
 	}
@@ -38,28 +36,17 @@ function cleanup() {
 
 	if ( terminationResourceHandleReceptacle.handle &&
 			!terminationResourceHandleReceptacle.handle.stale ) {
-		cleanupResult = iotivity.OCDeleteResource( terminationResourceHandleReceptacle.handle );
-		if ( testUtils.stackOKOrDie( "RD Server", "OCDeleteResource", cleanupResult ) ) {
-			process.exit( 0 );
-		}
+		testUtils.stackOKOrDie( "RD Server", "OCDeleteResource",
+			iotivity.OCDeleteResource( terminationResourceHandleReceptacle.handle ) );
 	}
 
-	cleanupResult = iotivity.OCRDStop();
-	if ( testUtils.stackOKOrDie( "RD Server", "OCRDStop", cleanupResult ) ) {
-		process.exit( 0 );
-	}
-
-	cleanupResult = iotivity.OCStop();
-	if ( testUtils.stackOKOrDie( "RD Server", "OCStop", cleanupResult ) ) {
-		process.exit( 0 );
-	}
-
+	testUtils.stackOKOrDie( "RD Server", "OCRDStop", iotivity.OCRDStop() );
+	testUtils.stackOKOrDie( "RD Server", "OCStop", iotivity.OCStop() );
 	console.log( JSON.stringify( { killPeer: true } ) );
-
 	process.exit( 0 );
 }
 
-console.log( JSON.stringify( { assertionCount: 5 } ) );
+console.log( JSON.stringify( { assertionCount: 8 } ) );
 
 // Initialize
 result = iotivity.OCRegisterPersistentStorageHandler( require( "../../../lib/StorageHandler" )() );
