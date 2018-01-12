@@ -17,7 +17,8 @@ var result,
 	processCallCount = 0,
 	processLoop = null,
 	iotivity = require( process.argv[ 3 ] + "/lowlevel" ),
-	testUtils = require( "../../utils" )( iotivity );
+	testUtils = require( "../../utils" )( iotivity ),
+	cleanupRequest = require( "./cleanupRequest" );
 
 function cleanup() {
 	var cleanupResult;
@@ -69,8 +70,12 @@ result = iotivity.OCRDDiscover(
 				}, iotivity.OCResourceProperty.OC_DISCOVERABLE ) );
 
 		testUtils.stackOKOrDie( "Server", "OCRDPublish",
-			iotivity.OCRDPublish( {}, response.addr.addr + ":" + response.addr.port,
-				iotivity.OCConnectivityType.CT_DEFAULT, [ resourceHandleReceptacle.handle ], 86400,
+			iotivity.OCRDPublish(
+				{},
+				response.addr.addr + ":" + response.addr.port,
+				iotivity.OCConnectivityType.CT_DEFAULT,
+				[ resourceHandleReceptacle.handle ],
+				86400,
 				function OCRDPublishResponse( handle, response ) {
 					var index;
 					var links = response.payload.values.links;
@@ -84,8 +89,12 @@ result = iotivity.OCRDDiscover(
 					testUtils.assert( "ok", index < links.length,
 						"Server: Posted resource found in OCRDPublish response" );
 
+					cleanupRequest( "Server", iotivity, testUtils, response.addr,
+						"/a/" + uuid + "-xyzzy" );
+
 					return iotivity.OCStackApplicationResult.OC_STACK_DELETE_TRANSACTION;
-				}, iotivity.OCQualityOfService.OC_HIGH_QOS ) );
+				},
+				iotivity.OCQualityOfService.OC_HIGH_QOS ) );
 
 		return iotivity.OCStackApplicationResult.OC_STACK_DELETE_TRANSACTION;
 	},

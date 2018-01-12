@@ -17,7 +17,8 @@ var result,
 	processCallCount = 0,
 	processLoop = null,
 	iotivity = require( process.argv[ 3 ] + "/lowlevel" ),
-	testUtils = require( "../../utils" )( iotivity );
+	testUtils = require( "../../utils" )( iotivity ),
+	cleanupRequest = require( "./cleanupRequest" );
 
 function cleanup() {
 	var cleanupResult;
@@ -31,7 +32,6 @@ function cleanup() {
 
 	cleanupResult = iotivity.OCStop();
 	if ( testUtils.stackOKOrDie( "Client", "OCStop", cleanupResult ) ) {
-		console.log( JSON.stringify( { killPeer: true } ) );
 		process.exit( 0 );
 	}
 }
@@ -64,14 +64,21 @@ var rdDevAddr;
 // Keep retrieving /oic/rd from the resource directory in an idle loop until it returns the
 // expected resource.
 function doOneTargetedDiscovery() {
-	iotivity.OCDoResource( {}, iotivity.OCMethod.OC_REST_GET, iotivity.OC_RSRVD_WELL_KNOWN_URI,
-		rdDevAddr, null, iotivity.OCConnectivityType.CT_DEFAULT,
-		iotivity.OCQualityOfService.OC_HIGH_QOS, function( handle, response ) {
+	iotivity.OCDoResource(
+		{},
+		iotivity.OCMethod.OC_REST_GET,
+		iotivity.OC_RSRVD_WELL_KNOWN_URI,
+		rdDevAddr,
+		null,
+		iotivity.OCConnectivityType.CT_DEFAULT,
+		iotivity.OCQualityOfService.OC_HIGH_QOS,
+		function retrieveRDOicResResponse( handle, response ) {
 			var payload;
 
 			for ( payload = response.payload; payload; payload = payload.next ) {
 				if ( payload.uri === "/a/" + uuid ) {
-					cleanup();
+					cleanupRequest( "Client", iotivity, testUtils, response.addr,
+						"/a/" + uuid + "-xyzzy" );
 				}
 			}
 
@@ -80,20 +87,26 @@ function doOneTargetedDiscovery() {
 			}
 
 			return iotivity.OCStackApplicationResult.OC_STACK_DELETE_TRANSACTION;
-		}, null );
+		},
+		null );
 }
 
 function doOneDiscovery() {
-	testUtils.stackOKOrDie( "Client", "OCRDDiscover", iotivity.OCRDDiscover( {},
-		iotivity.OCConnectivityType.CT_DEFAULT,
-		function OCRDDiscoverResponse( handle, response ) {
-			testUtils.stackOKOrDie( "Client", "OCRDDiscover response", response.result );
+	testUtils.stackOKOrDie( "Client", "OCRDDiscover",
+		iotivity.OCRDDiscover(
+			{},
+			iotivity.OCConnectivityType.CT_DEFAULT,
+			function OCRDDiscoverResponse( handle, response ) {
+				testUtils.stackOKOrDie( "Client", "OCRDDiscover response", response.result );
 
-			rdDevAddr = response.addr;
+				rdDevAddr = response.addr;
 
-			setTimeout( doOneTargetedDiscovery, 0 );
-			return iotivity.OCStackApplicationResult.OC_STACK_DELETE_TRANSACTION;
-		}, iotivity.OCQualityOfService.OC_HIGH_QOS ) );
+				setTimeout( doOneTargetedDiscovery, 0 );
+				return iotivity.OCStackApplicationResult.OC_STACK_DELETE_TRANSACTION;
+			},
+			iotivity.OCQualityOfService.OC_HIGH_QOS ) );
 }
 
 setTimeout( doOneDiscovery, 0 );
+
+process.on( "message", cleanup );

@@ -13,6 +13,9 @@
 // limitations under the License.
 
 var result,
+	cleanupPrerequisiteCount = 0,
+	uuid = process.argv[ 2 ],
+	terminationResourceHandleReceptacle = {},
 	processCallCount = 0,
 	processLoop = null,
 	iotivity = require( process.argv[ 3 ] + "/lowlevel" ),
@@ -21,6 +24,10 @@ var result,
 function cleanup() {
 	var cleanupResult;
 
+	if ( ++cleanupPrerequisiteCount < 2 ) {
+		return;
+	}
+
 	if ( processLoop ) {
 		clearInterval( processLoop );
 		processLoop = null;
@@ -28,6 +35,14 @@ function cleanup() {
 
 	testUtils.assert( "ok", true, "RD Server: OCProcess succeeded " + processCallCount +
 		" times" );
+
+	if ( terminationResourceHandleReceptacle.handle &&
+			!terminationResourceHandleReceptacle.handle.stale ) {
+		cleanupResult = iotivity.OCDeleteResource( terminationResourceHandleReceptacle.handle );
+		if ( testUtils.stackOKOrDie( "RD Server", "OCDeleteResource", cleanupResult ) ) {
+			process.exit( 0 );
+		}
+	}
 
 	cleanupResult = iotivity.OCRDStop();
 	if ( testUtils.stackOKOrDie( "RD Server", "OCRDStop", cleanupResult ) ) {
@@ -38,6 +53,10 @@ function cleanup() {
 	if ( testUtils.stackOKOrDie( "RD Server", "OCStop", cleanupResult ) ) {
 		process.exit( 0 );
 	}
+
+	console.log( JSON.stringify( { killPeer: true } ) );
+
+	process.exit( 0 );
 }
 
 console.log( JSON.stringify( { assertionCount: 5 } ) );
@@ -66,8 +85,19 @@ processLoop = setInterval( function() {
 	}
 }, 100 );
 
+result = iotivity.OCCreateResource( terminationResourceHandleReceptacle,
+	"core.light", "oic.if.baseline", "/a/" + uuid + "-xyzzy",
+	function terminationResourceEntityHandler( flag, request ) {
+		if ( request.resource === terminationResourceHandleReceptacle.handle &&
+				request.method === iotivity.OCMethod.OC_REST_POST &&
+				request.payload &&
+				request.payload.type === iotivity.OCPayloadType.PAYLOAD_TYPE_REPRESENTATION &&
+				request.payload.values.killPeer === true ) {
+			cleanup();
+		}
+		return iotivity.OCEntityHandlerResult.OC_EH_OK;
+	}, iotivity.OCResourceProperty.OC_DISCOVERABLE );
+testUtils.stackOKOrDie( "RD Server", "OCCreateResource", result );
+
 // Report that the server has successfully created its resource(s).
 console.log( JSON.stringify( { ready: true } ) );
-
-// Exit gracefully when interrupted
-process.on( "message", cleanup );
