@@ -6,6 +6,7 @@
 #define DESIRED_RESOURCE "/a/high-level-example"
 
 static char *desiredUrl = NULL;
+static OCDevAddr desiredAddr;
 
 static OCStackApplicationResult
 requestCallback(void *NOTHING, OCDoHandle handle, OCClientResponse *response) {
@@ -22,7 +23,7 @@ performRequest() {
 		.cd = NULL,
 	};
 	printf("OCDoResource(request) to %s: %d\n", desiredUrl,
-		OCDoResource(&handle, OC_REST_GET, desiredUrl, NULL,
+		OCDoResource(&handle, OC_REST_GET, DESIRED_RESOURCE, &desiredAddr,
 			NULL, CT_DEFAULT, OC_HIGH_QOS, &callback, NULL, 0));
 	free(desiredUrl);
 }
@@ -35,6 +36,7 @@ discoverCallback(void *NOTHING, OCDoHandle handle, OCClientResponse *response) {
 		for (resource = ((OCDiscoveryPayload *)(response->payload))->resources;
 				resource; resource = resource->next) {
 			if (resource->uri && !strcmp(resource->uri, DESIRED_RESOURCE)) {
+				desiredAddr = response->devAddr;
 				for (OCEndpointPayload *ep = resource->eps; ep; ep = ep->next) {
 					if (!desiredUrl && !strcmp(ep->tps, "coaps")) {
 						char *percent = strstr(ep->addr, "%");

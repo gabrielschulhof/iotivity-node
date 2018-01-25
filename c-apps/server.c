@@ -30,5 +30,9 @@ void doIoT() {
 	printf("OCCreateResource: %d\n",
 		OCCreateResource(&handle, "core.light", "oic.if.baseline",
 			"/a/high-level-example", entityHandler, NULL,
-			OC_DISCOVERABLE | OC_OBSERVABLE | OC_SECURE));
+			OC_DISCOVERABLE | OC_OBSERVABLE));
+
+	printf("OCGetResourceProperties: discoverable: %s\n", (OCGetResourceProperties(handle) & OC_DISCOVERABLE) ? "true" : "false");
+	printf("OCGetResourceProperties: observable: %s\n", (OCGetResourceProperties(handle) & OC_OBSERVABLE) ? "true" : "false");
+	printf("OCGetResourceProperties: secure: %s\n", (OCGetResourceProperties(handle) & OC_SECURE) ? "true" : "false");
 }
