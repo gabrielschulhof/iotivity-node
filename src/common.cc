@@ -71,3 +71,13 @@ std::string c_ArrayFromBytes(napi_env env, napi_value array,
   }
   return std::string();
 }
+
+std::string napi_status_to_string(napi_env env) {
+  const napi_extended_error_info *error_info = nullptr;
+  napi_get_last_error_info(env, &error_info);
+  return error_info->error_code == napi_ok
+      ? std::string()
+      : std::string((error_info->error_code == napi_pending_exception)
+                      ? PENDING_EXCEPTION
+                      : error_info->error_message);
+}

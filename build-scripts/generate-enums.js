@@ -45,7 +45,13 @@ function parseFileForEnums( destination, fileName ) {
 				if ( !fields[ 0 ].match( /^[{}]/ ) && fields[ 0 ] !== "typedef" ) {
 					if ( fields[ 0 ].match( /^[A-Z]/ ) ) {
 						fields[ 0 ] = fields[ 0 ].replace( /,/g, "" );
-						output += "  SET_CONSTANT(env, *jsEnum, " + fields[ 0 ] + ", double);\n";
+						output += "  if (napi_create_double(env, " + fields[ 0 ] + ", &value) " +
+							"!= napi_ok) " +
+							"goto failure;\n";
+						output += "  if (" +
+							"napi_set_named_property(env, *jsEnum, \"" + fields[ 0 ] + "\", " +
+							"value) != napi_ok) " +
+							"goto failure;\n";
 					} else if ( fields[ 0 ].match( /^#(if|endif)/ ) ) {
 						output += line + "\n";
 					}
@@ -54,12 +60,23 @@ function parseFileForEnums( destination, fileName ) {
 						.replace( startingBraceRegex, "" )
 						.replace( /\s*;.*$/, "" );
 					if ( exceptions.indexOf( enumName ) < 0 ) {
-						enumList.push( "  SET_ENUM(env, exports, " + enumName + ");" );
+						enumList = enumList.concat( [
+							"  if (!(result = bind_" + enumName + "(env, &js_enum)).empty()) " +
+								"goto failure;",
+							"  if ((status = napi_set_named_property(env, exports, " +
+								"\"" + enumName + "\", js_enum)) != napi_ok) {",
+							"    result = napi_status_to_string(env);",
+							"    goto failure;",
+							"  }"
+						] );
 						fs.writeFileSync( destination,
 							[
 								"static std::string bind_" + enumName +
 								"(napi_env env, napi_value *jsEnum) {",
-								"  NAPI_CALL_RETURN(env, napi_create_object(env, jsEnum));"
+								"  napi_value value;",
+								"",
+								"  if (napi_create_object(env, jsEnum) != napi_ok) goto failure;",
+								""
 							].join( "\n" ) + "\n",
 							{ flag: "a" } );
 					}
@@ -71,7 +88,11 @@ function parseFileForEnums( destination, fileName ) {
 				if ( line.match( /;$/ ) ) {
 					print = false;
 					if ( exceptions.indexOf( enumName ) < 0 ) {
-						fs.writeFileSync( destination, output + "\n  return std::string();\n}\n",
+						fs.writeFileSync( destination, output + "\n" +
+							"  return std::string();\n" +
+							"failure:\n" +
+							"  return napi_status_to_string(env) + \"\\n\" + SOURCE_LOCATION;\n" +
+							"}\n",
 							{ flag: "a" } );
 					}
 					output = "";
@@ -91,9 +112,15 @@ fs.writeFileSync( enumsCC,
 
 fs.writeFileSync( enumsCC, [
 		"std::string InitEnums(napi_env env, napi_value exports) {",
+		"  std::string result;",
+		"  napi_value js_enum;",
+		"  napi_status status;",
+		"",
 		parseFileForEnums( enumsCC, includePaths[ "octypes.h" ] ),
 		parseFileForEnums( enumsCC, includePaths[ "ocpresence.h" ] ),
 		"  return std::string();",
+		"failure:",
+		"  return result + SOURCE_LOCATION;",
 		"}"
 	].join( "\n" ) + "\n",
 	{ flag: "a" } );
