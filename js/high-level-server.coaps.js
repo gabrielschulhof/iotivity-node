@@ -12,38 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-function ObservationWrapper( resource ) {
-  if ( !( this instanceof ObservationWrapper ) ) {
-    return new ObservationWrapper( resource );
-  }
-  this.resource = resource;
-  this.observerCount = 0;
-}
-
-ObservationWrapper.prototype.addObserver = function() {
-  if ( this.observerCount === 0 ) {
-    console.log( "Firing up interval" );
-    var resource = this.resource;
-    this.intervalId = setInterval( function() {
-      resource.properties.outputValue = Math.round( Math.random() * 42 ) + 1;
-      resource.notify();
-    }, 1000 );
-  }
-  this.observerCount++;
-};
-
-ObservationWrapper.prototype.removeObserver = function() {
-  this.observerCount--;
-  if ( this.observerCount <= 0 ) {
-    console.log( "Turning off interval" );
-    clearInterval( this.intervalId );
-    this.observerCount = 0;
-    this.intervalId = 0;
-  }
-};
-
-var observationWrapper;
-
 function errorHandler( error ) {
   console.log( error.stack + ": " + JSON.stringify( error, null, 4 ) );
   process.exit( 1 );
@@ -66,26 +34,18 @@ ocf.server
   } )
   .then( function( resource ) {
     console.log( "Resource registered: " + JSON.stringify( resource, null, 4 ) );
-    observationWrapper = ObservationWrapper( resource );
     resource
-      .onretrieve( function( request ) {
-        if ( "observe" in request ) {
-          var observationRequest = request.observe ? "add" : "remove";
-          console.log( "Observation request: " + observationRequest );
-          observationWrapper[ observationRequest + "Observer" ]();
-        }
-        request.target.properties.outputValue =
-          Math.round( Math.random() * 42 ) + 1;
-        console.log( "Retrieve request received. Responding with " +
-          JSON.stringify( request.target, null, 4 ) );
+      .onupdate( function( request ) {
+        console.log( "Update request: " + JSON.stringify( request, null, 4 ) );
+
+        // Toggle resource type between core.fan and core.light
+        resource.resourceTypes =
+          ( resource.resourceTypes[ 0 ] === "core.light" ? [ "core.fan" ] : [ "core.light" ] );
+        console.log( "Updated resource types. Resource now looks like this:" +
+            JSON.stringify( resource, null, 4 ) );
         request
           .respond()
           .catch( errorHandler );
-      } )
-      .onupdate( function( request ) {
-        console.log( "Update request: " + JSON.stringify( request, null, 4 ) );
-        resource.properties = request.data;
-        request.respond();
       } );
   } )
   .catch( errorHandler );

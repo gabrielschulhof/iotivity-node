@@ -21,23 +21,22 @@ function errorHandler( error ) {
   process.exit( 1 );
 }
 
-function observer( resource ) {
-  console.log( "Observation: " + JSON.stringify( resource, null, 4 ) );
+function doDiscovery() {
+  return client
+    .on( "resourcefound", onResourceFound )
+    .findResources( { resourcePath: "/a/light" } )
+    .catch( errorHandler );
 }
 
-client
-  .on( "resourcefound", function( resource ) {
-    console.log( "Found resource: " + JSON.stringify( resource, null, 4 ) );
-    resource.on( "error", errorHandler );
+function onResourceFound( resource ) {
+  console.log( "Found resource: " + JSON.stringify( resource, null, 4 ) );
 
-    client.retrieve( resource, observer )
-      .then( function( resultingResource ) {
-        console.log( "Resulting resource: " +
-          JSON.stringify( resultingResource, null, 4 ) );
-      } )
-      .catch( errorHandler );
-  } )
-  .findResources( { resourcePath: "/a/light" } )
-  .catch( errorHandler );
+  client
+    .removeListener( "resourcefound", onResourceFound )
+    .update( resource )
+    .then( doDiscovery, errorHandler );
+}
+
+doDiscovery();
 
 console.log( "Started looking for resources" );

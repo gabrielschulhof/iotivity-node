@@ -64,7 +64,14 @@ iotivity.OCDoResource(
 	iotivity.OCConnectivityType.CT_DEFAULT,
 	iotivity.OCQualityOfService.OC_HIGH_QOS,
 	function( handle, response ) {
-		console.log( "Discovery response: " + JSON.stringify( response, null, 4 ) );
+		if ( response && response.payload && response.payload.resources ) {
+			var index;
+			for ( index in response.payload.resources ) {
+				if ( response.payload.resources[ index ].uri === "/oic/d" ) {
+					console.log( JSON.stringify( response.payload.resources[ index ], null, 4 ) );
+				}
+			}
+		}
 		return iotivity.OCStackApplicationResult.OC_STACK_KEEP_TRANSACTION;
 	},
 
